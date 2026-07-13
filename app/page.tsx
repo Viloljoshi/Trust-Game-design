@@ -45,6 +45,12 @@ type Character = {
   prop: string;
 };
 
+type RoundScore = {
+  you: number;
+  world: number;
+  verdict: "win" | "draw" | "loss";
+};
+
 const characters: Record<string, Character> = {
   Scout: {
     name: "Scout",
@@ -133,8 +139,7 @@ const chapters: Chapter[] = [
     title: "Would You Trust Me?",
     scale: "one exchange",
     concept: "Baseline trust under incomplete information.",
-    prompt:
-      "Scout has one token. You have one token. A token given away becomes two tokens for the other person.",
+    prompt: "Give Scout a token and it becomes two.",
     characters: ["Scout", "Velvet"],
     research: "Prisoner's dilemma framing, betrayal aversion and baseline prediction.",
     visual: "exchange",
@@ -183,8 +188,7 @@ const chapters: Chapter[] = [
     title: "The Exchange",
     scale: "repeated relationship",
     concept: "Reciprocity changes when the future is uncertain.",
-    prompt:
-      "Velvet cooperated twice, then a larger opportunity appeared. Do you expect warmth or opportunism?",
+    prompt: "Velvet helped twice. Now a bigger reward appears.",
     characters: ["Scout", "Velvet", "Drift"],
     research: "Axelrod and Hamilton, direct reciprocity, time horizons and tournament strategies.",
     visual: "exchange",
@@ -233,8 +237,7 @@ const chapters: Chapter[] = [
     title: "One Mistake",
     scale: "relationship repair",
     concept: "Betrayal, error and repair are not the same thing.",
-    prompt:
-      "Patch missed a support block after three reliable rounds. The bridge cracked, but the cause is hidden.",
+    prompt: "Patch made one mistake after three good rounds.",
     characters: ["Patch", "Wall", "Scout"],
     research: "Noise, communication, apology, compensation and trust repair.",
     visual: "mistake",
@@ -283,8 +286,7 @@ const chapters: Chapter[] = [
     title: "The Shared Pot",
     scale: "public good",
     concept: "Visible norms can build cooperation or collapse it.",
-    prompt:
-      "Five agents receive ten tokens. Contributed tokens multiply, then return to the whole group.",
+    prompt: "Everyone can add tokens to one shared pot.",
     characters: ["Echo", "Drift", "Scout"],
     research: "Conditional cooperation, free riding, costly punishment and fairness context.",
     visual: "group",
@@ -333,8 +335,7 @@ const chapters: Chapter[] = [
     title: "Everyone Is Watching",
     scale: "marketplace",
     concept: "Ratings are signals, not ground truth.",
-    prompt:
-      "Two providers have five stars. One has verified transactions. One has a fresh burst from three linked accounts.",
+    prompt: "Two providers have five stars. One may be faking it.",
     characters: ["Ledger", "Mask", "Velvet"],
     research: "Indirect reciprocity, fake reviews, observation effects and platform incentives.",
     visual: "reputation",
@@ -383,8 +384,7 @@ const chapters: Chapter[] = [
     title: "The Feed Chooses",
     scale: "information network",
     concept: "Attention incentives can outrun evidence.",
-    prompt:
-      "A shocking claim is spreading fast. It has emotion, repetition and weak source independence.",
+    prompt: "A shocking claim is spreading fast.",
     characters: ["Lens", "Spark", "Echo"],
     research: "False-news diffusion, outrage, homophily, source tracing and platform objectives.",
     visual: "feed",
@@ -433,8 +433,7 @@ const chapters: Chapter[] = [
     title: "The AI Coworker",
     scale: "human and AI team",
     concept: "Confidence is not competence.",
-    prompt:
-      "Oracle gives a fluent recommendation on a rare case. Compass asks for missing context and shows uncertainty.",
+    prompt: "One AI sounds certain. The other admits uncertainty.",
     characters: ["Oracle", "Compass", "Scout"],
     research: "Automation bias, algorithm aversion, task competence and confidence calibration.",
     visual: "ai",
@@ -483,8 +482,7 @@ const chapters: Chapter[] = [
     title: "Rewrite the Rules",
     scale: "institution",
     concept: "Better systems change incentives, not just intentions.",
-    prompt:
-      "A market has review manipulation, a group has free riding and an AI workflow has automation bias.",
+    prompt: "The system is being gamed. You can change one rule.",
     characters: ["Architect", "Ledger", "Compass"],
     research: "Institutional design, monitoring, appeals, privacy, sanctions and exit rights.",
     visual: "rules",
@@ -533,8 +531,7 @@ const chapters: Chapter[] = [
     title: "Sandbox",
     scale: "open experiment",
     concept: "Change the world and rerun the trust problem.",
-    prompt:
-      "Tune noise, future interaction, reputation quality and AI calibration. The system responds immediately.",
+    prompt: "Change the settings, then run the world again.",
     characters: ["Scout", "Echo", "Compass"],
     research: "Seeded counterfactuals, sensitivity testing and simulation literacy.",
     visual: "sandbox",
@@ -602,6 +599,14 @@ function updateMetrics(metrics: Metrics, deltas: Partial<Metrics>): Metrics {
   };
 }
 
+function scoreMove(action: Action): RoundScore {
+  const you = clamp(2 + action.tokens, 0, 6);
+  const world = clamp(2 + Math.round(action.trustShift / 5), 0, 6);
+  const verdict = you === world ? "draw" : you > world ? "win" : "loss";
+
+  return { you, world, verdict };
+}
+
 function metricLabel(key: MetricKey) {
   const labels: Record<MetricKey, string> = {
     calibration: "Trust calibration",
@@ -621,6 +626,9 @@ export default function Home() {
   const [metrics, setMetrics] = useState<Metrics>(initialMetrics);
   const [trust, setTrust] = useState(46);
   const [tokens, setTokens] = useState(6);
+  const [youScore, setYouScore] = useState(0);
+  const [worldScore, setWorldScore] = useState(0);
+  const [roundScore, setRoundScore] = useState<RoundScore | null>(null);
   const [round, setRound] = useState(1);
   const [lastAction, setLastAction] = useState<Action>(chapters[0].actions[0]);
   const [hasChosen, setHasChosen] = useState(false);
@@ -693,13 +701,18 @@ export default function Home() {
     setActiveIndex(index);
     setLastAction(next.actions[0]);
     setHasChosen(false);
+    setRoundScore(null);
     setPulse((value) => value + 1);
     playTone("soft");
   }
 
   function applyAction(action: Action) {
+    const score = scoreMove(action);
     setLastAction(action);
     setHasChosen(true);
+    setRoundScore(score);
+    setYouScore((value) => value + score.you);
+    setWorldScore((value) => value + score.world);
     setTrust((value) => clamp(value + action.trustShift));
     setTokens((value) => Math.max(0, value + action.tokens));
     setMetrics((value) => updateMetrics(value, action.deltas));
@@ -713,6 +726,9 @@ export default function Home() {
     setMetrics(initialMetrics);
     setTrust(46);
     setTokens(6);
+    setYouScore(0);
+    setWorldScore(0);
+    setRoundScore(null);
     setRound(1);
     setLastAction(chapters[0].actions[0]);
     setHasChosen(false);
@@ -754,22 +770,22 @@ export default function Home() {
             <article>
               <span>1</span>
               <div>
-                <strong>Read the situation</strong>
-                <p>Notice what you know and what is still uncertain.</p>
+                <strong>See the setup</strong>
+                <p>One short line shows what is happening.</p>
               </div>
             </article>
             <article>
               <span>2</span>
               <div>
-                <strong>Choose your move</strong>
-                <p>Pick the response that feels most reasonable.</p>
+                <strong>Tap a move</strong>
+                <p>Choose quickly. No long question.</p>
               </div>
             </article>
             <article>
               <span>3</span>
               <div>
-                <strong>See what changes</strong>
-                <p>Learn how your choice affects trust and cooperation.</p>
+                <strong>Watch the result</strong>
+                <p>Score the round, then see what happened to trust.</p>
               </div>
             </article>
           </div>
@@ -852,25 +868,74 @@ export default function Home() {
           </div>
           <p className="chapter-number">Situation</p>
           <h2>{chapter.title}</h2>
-          <p className="scale">{chapter.scale}</p>
           <p className="prompt">{chapter.prompt}</p>
-          {hasChosen ? (
-            <p className="caption"><strong>Your move:</strong> {lastAction.line}</p>
-          ) : (
-            <p className="story-hint">Take a moment. What would you do?</p>
+
+          <div className="move-picker">
+            <div className="move-heading">
+              <strong>Your move</strong>
+              <span>{tokens} tokens</span>
+            </div>
+            <div className="action-grid">
+              {chapter.actions.map((action) => (
+                <button
+                  key={action.id}
+                  className={`action-button ${hasChosen && lastAction.id === action.id ? "selected" : ""}`}
+                  type="button"
+                  aria-label={action.label}
+                  disabled={hasChosen}
+                  onClick={() => applyAction(action)}
+                >
+                  {action.short}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {chapter.visual === "sandbox" && (
+            <div className="sandbox-controls" aria-label="Sandbox variables">
+              <RangeControl label="Future" value={sandbox.future} onChange={(future) => setSandbox((value) => ({ ...value, future }))} />
+              <RangeControl label="Mistakes" value={sandbox.error} onChange={(error) => setSandbox((value) => ({ ...value, error }))} />
+              <RangeControl label="Reputation" value={sandbox.reputation} onChange={(reputation) => setSandbox((value) => ({ ...value, reputation }))} />
+              <RangeControl label="AI" value={sandbox.ai} onChange={(ai) => setSandbox((value) => ({ ...value, ai }))} />
+            </div>
           )}
         </aside>
 
         <section className={`lab-canvas ${chapter.visual}`} data-pulse={pulse}>
           <div className="canvas-topline">
-            <span>{chapter.concept}</span>
             <span>Round {round}</span>
+            <span>{chapter.scale}</span>
+          </div>
+
+          <div
+            className="scoreboard"
+            aria-label={`Score: You ${youScore}, World ${worldScore}`}
+            aria-live="polite"
+          >
+            <div className="score-side you-score"><span>You</span><strong>{youScore}</strong></div>
+            <div className={`round-verdict ${roundScore?.verdict ?? "waiting"}`}>
+              <strong>
+                {!roundScore
+                  ? "Pick a move"
+                  : roundScore.verdict === "win"
+                    ? "You win"
+                    : roundScore.verdict === "loss"
+                      ? "World wins"
+                      : "Draw"}
+              </strong>
+              <span>
+                {roundScore
+                  ? `+${roundScore.you} : +${roundScore.world}`
+                  : "this round"}
+              </span>
+            </div>
+            <div className="score-side world-score"><span>World</span><strong>{worldScore}</strong></div>
           </div>
 
           <div className="relationship-wrap" aria-hidden="true">
             <div className="relationship-line" style={{ width: `${clamp(trust, 18, 92)}%` }} />
             <div className={trust > 58 ? "relationship-label strong" : "relationship-label"}>
-              evidence {trust}%
+              trust {trust}%
             </div>
           </div>
 
@@ -883,56 +948,22 @@ export default function Home() {
           <SceneVisual visual={chapter.visual} pulse={pulse} sandboxScores={sandboxScores} />
         </section>
 
-        <aside className="decision-panel">
-          <div className="decision-heading">
-            <p className="eyebrow">Your move</p>
-            <span>{tokens} tokens</span>
-          </div>
-
-          <div className="action-grid">
-            {chapter.actions.map((action) => (
-              <button
-                key={action.id}
-                className={`action-button ${hasChosen && lastAction.id === action.id ? "selected" : ""}`}
-                type="button"
-                onClick={() => applyAction(action)}
-              >
-                <span>{action.short}</span>
-                {action.label}
-              </button>
-            ))}
-          </div>
-
-          {chapter.visual === "sandbox" && (
-            <div className="sandbox-controls" aria-label="Sandbox variables">
-              <RangeControl
-                label="Future interaction"
-                value={sandbox.future}
-                onChange={(future) => setSandbox((value) => ({ ...value, future }))}
-              />
-              <RangeControl
-                label="Mistake rate"
-                value={sandbox.error}
-                onChange={(error) => setSandbox((value) => ({ ...value, error }))}
-              />
-              <RangeControl
-                label="Reputation quality"
-                value={sandbox.reputation}
-                onChange={(reputation) => setSandbox((value) => ({ ...value, reputation }))}
-              />
-              <RangeControl
-                label="AI calibration"
-                value={sandbox.ai}
-                onChange={(ai) => setSandbox((value) => ({ ...value, ai }))}
-              />
-            </div>
-          )}
-
-          {hasChosen ? (
+        {hasChosen && roundScore && (
+          <aside className={`decision-panel result-${roundScore.verdict}`}>
             <div className="outcome" aria-live="polite">
-              <p className="eyebrow">What happened</p>
-              <strong>{lastAction.result}</strong>
-              <span><b>What this teaches:</b> {lastAction.lesson}</span>
+              <div className="result-summary">
+                <p className="eyebrow">Round result</p>
+                <strong>
+                  {roundScore.verdict === "win" ? "You won" : roundScore.verdict === "loss" ? "You lost" : "It is a draw"}
+                </strong>
+                <span className={lastAction.trustShift >= 0 ? "trust-up" : "trust-down"}>
+                  Trust {lastAction.trustShift >= 0 ? "gained" : "lost"} {Math.abs(lastAction.trustShift)}
+                </span>
+              </div>
+              <div className="result-learning">
+                <strong>{lastAction.result}</strong>
+                <span>{lastAction.lesson}</span>
+              </div>
               <button
                 className="next-lesson"
                 type="button"
@@ -943,11 +974,8 @@ export default function Home() {
                 <i aria-hidden="true">→</i>
               </button>
             </div>
-          ) : (
-            <p className="choice-hint">Choose the response that feels most reasonable to you.</p>
-          )}
-
-        </aside>
+          </aside>
+        )}
       </section>
 
       <details className="learning-drawer">

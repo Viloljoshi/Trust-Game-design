@@ -35,7 +35,9 @@ test("server-renders Trust Lab", async () => {
   assert.match(html, /<title>Trust Lab<\/title>/i);
   assert.match(html, /Trust Lab/i);
   assert.match(html, /Learn how trust works by making choices/i);
-  assert.match(html, /Read the situation/i);
+  assert.match(html, /One short line shows what is happening/i);
+  assert.match(html, /Tap a move/i);
+  assert.match(html, /Score the round, then see what happened to trust/i);
   assert.match(html, /Start lesson 1/i);
   assert.doesNotMatch(html, developmentPreviewMeta);
   assert.doesNotMatch(html, /react-loading-skeleton|Your site is taking shape|Codex is building/i);
@@ -53,6 +55,12 @@ test("keeps Trust Lab product files free of starter preview imports", async () =
   assert.match(page, /Lesson \{activeIndex \+ 1\} of \{chapters\.length\}/);
   assert.match(page, /See your learning progress/);
   assert.match(page, /Next lesson/);
+  assert.match(page, /className="move-picker"/);
+  assert.match(page, /Score: You \$\{youScore\}, World \$\{worldScore\}/);
+  assert.match(page, /You win/);
+  assert.match(page, /World wins/);
+  assert.match(page, /Trust \{lastAction\.trustShift >= 0 \? "gained" : "lost"\}/);
+  assert.match(page, /function scoreMove\(action: Action\)/);
   assert.match(page, /tone-\$\{tone\}\.mp3/);
   assert.doesNotMatch(page, /speechSynthesis|SpeechSynthesisUtterance|playNarration|Voice transcript/);
   assert.match(page, /The Feed Chooses/);
