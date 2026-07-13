@@ -707,7 +707,7 @@ export default function Home() {
     const audio = new Audio(`/audio/tone-${tone}.mp3`);
     audio.volume = 0.72;
     sfxRef.current = audio;
-    void audio.play();
+    void audio.play().catch(() => undefined);
   }
 
   function speak(text: string, force = false) {
@@ -781,8 +781,12 @@ export default function Home() {
       return;
     }
 
-    await startAmbient();
-    playTone("soft");
+    try {
+      await startAmbient();
+      playTone("soft");
+    } catch {
+      setMusicOn(false);
+    }
   }
 
   async function activateAudio(includeAmbient = true) {
