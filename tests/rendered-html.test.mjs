@@ -49,10 +49,9 @@ test("keeps Trust Lab product files free of starter preview imports", async () =
     readFile(new URL("../package.json", import.meta.url), "utf8"),
   ]);
 
-  assert.match(page, /speechSynthesis/);
-  assert.match(page, /Start voice \+ sound/);
-  assert.match(page, /chapter-\$\{chapterId\}\.mp3/);
-  assert.match(page, /action-\$\{action\.id\}\.mp3/);
+  assert.match(page, /Start game audio/);
+  assert.match(page, /tone-\$\{tone\}\.mp3/);
+  assert.doesNotMatch(page, /speechSynthesis|SpeechSynthesisUtterance|playNarration|Voice transcript/);
   assert.match(page, /The Feed Chooses/);
   assert.match(page, /Rewrite the Rules/);
   assert.match(page, /Sandbox/);
@@ -62,17 +61,14 @@ test("keeps Trust Lab product files free of starter preview imports", async () =
   assert.doesNotMatch(page + layout + css + packageJson, /_sites-preview|SkeletonPreview|react-loading-skeleton/);
 });
 
-test("ships narration and sound files with the game", async () => {
+test("ships animated game sounds without spoken narration", async () => {
   const audioDirectory = new URL("../public/audio/", import.meta.url);
   const files = await readdir(audioDirectory);
-  const actionClips = files.filter((file) => file.startsWith("action-") && file.endsWith(".mp3"));
-  const chapterClips = files.filter((file) => file.startsWith("chapter-") && file.endsWith(".mp3"));
-
-  assert.equal(actionClips.length, 27);
-  assert.equal(chapterClips.length, 9);
+  assert.equal(files.filter((file) => file.startsWith("action-")).length, 0);
+  assert.equal(files.filter((file) => file.startsWith("chapter-")).length, 0);
   assert.ok(files.includes("ambient.mp3"));
   assert.ok(files.includes("tone-bright.mp3"));
 
-  const sample = await stat(new URL("chapter-prologue.mp3", audioDirectory));
-  assert.ok(sample.size > 10_000);
+  const sample = await stat(new URL("tone-bright.mp3", audioDirectory));
+  assert.ok(sample.size > 1_000);
 });

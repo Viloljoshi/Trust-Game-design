@@ -19,7 +19,7 @@ export const metadata: Metadata = {
   openGraph: {
     title: "Trust Lab",
     description:
-      "Play through animated trust simulations with voice narration, consequences and calibration feedback.",
+      "Play through animated trust simulations with expressive game sounds, consequences and calibration feedback.",
     type: "website",
   },
   icons: {

@@ -32,7 +32,6 @@ type Chapter = {
   scale: string;
   concept: string;
   prompt: string;
-  voice: string;
   characters: string[];
   research: string;
   visual: "exchange" | "mistake" | "group" | "reputation" | "feed" | "ai" | "rules" | "sandbox";
@@ -136,8 +135,6 @@ const chapters: Chapter[] = [
     concept: "Baseline trust under incomplete information.",
     prompt:
       "Scout has one token. You have one token. A token given away becomes two tokens for the other person.",
-    voice:
-      "This machine doubles whatever you give away. You are not choosing a personality. You are choosing under uncertainty.",
     characters: ["Scout", "Velvet"],
     research: "Prisoner's dilemma framing, betrayal aversion and baseline prediction.",
     visual: "exchange",
@@ -188,8 +185,6 @@ const chapters: Chapter[] = [
     concept: "Reciprocity changes when the future is uncertain.",
     prompt:
       "Velvet cooperated twice, then a larger opportunity appeared. Do you expect warmth or opportunism?",
-    voice:
-      "A strategy does not succeed alone. It succeeds inside an environment with memory, payoffs and possible future rounds.",
     characters: ["Scout", "Velvet", "Drift"],
     research: "Axelrod and Hamilton, direct reciprocity, time horizons and tournament strategies.",
     visual: "exchange",
@@ -240,8 +235,6 @@ const chapters: Chapter[] = [
     concept: "Betrayal, error and repair are not the same thing.",
     prompt:
       "Patch missed a support block after three reliable rounds. The bridge cracked, but the cause is hidden.",
-    voice:
-      "A crack is evidence of harm. It is not yet evidence of intent. Your next move decides what kind of evidence you get.",
     characters: ["Patch", "Wall", "Scout"],
     research: "Noise, communication, apology, compensation and trust repair.",
     visual: "mistake",
@@ -292,8 +285,6 @@ const chapters: Chapter[] = [
     concept: "Visible norms can build cooperation or collapse it.",
     prompt:
       "Five agents receive ten tokens. Contributed tokens multiply, then return to the whole group.",
-    voice:
-      "A group problem is not just five individual choices. Visibility, capacity and punishment change the whole field.",
     characters: ["Echo", "Drift", "Scout"],
     research: "Conditional cooperation, free riding, costly punishment and fairness context.",
     visual: "group",
@@ -344,8 +335,6 @@ const chapters: Chapter[] = [
     concept: "Ratings are signals, not ground truth.",
     prompt:
       "Two providers have five stars. One has verified transactions. One has a fresh burst from three linked accounts.",
-    voice:
-      "Reputation helps when its sources are reliable. It misleads when visibility can be purchased or reset.",
     characters: ["Ledger", "Mask", "Velvet"],
     research: "Indirect reciprocity, fake reviews, observation effects and platform incentives.",
     visual: "reputation",
@@ -396,8 +385,6 @@ const chapters: Chapter[] = [
     concept: "Attention incentives can outrun evidence.",
     prompt:
       "A shocking claim is spreading fast. It has emotion, repetition and weak source independence.",
-    voice:
-      "Popularity is not the same as evidence. The feed can amplify a pattern without understanding whether it is true.",
     characters: ["Lens", "Spark", "Echo"],
     research: "False-news diffusion, outrage, homophily, source tracing and platform objectives.",
     visual: "feed",
@@ -448,8 +435,6 @@ const chapters: Chapter[] = [
     concept: "Confidence is not competence.",
     prompt:
       "Oracle gives a fluent recommendation on a rare case. Compass asks for missing context and shows uncertainty.",
-    voice:
-      "The goal is not to always accept AI or always reject AI. The goal is calibrated reliance.",
     characters: ["Oracle", "Compass", "Scout"],
     research: "Automation bias, algorithm aversion, task competence and confidence calibration.",
     visual: "ai",
@@ -500,8 +485,6 @@ const chapters: Chapter[] = [
     concept: "Better systems change incentives, not just intentions.",
     prompt:
       "A market has review manipulation, a group has free riding and an AI workflow has automation bias.",
-    voice:
-      "Now you stop only reacting. You can rearrange the rules that decide what gets rewarded, checked and repaired.",
     characters: ["Architect", "Ledger", "Compass"],
     research: "Institutional design, monitoring, appeals, privacy, sanctions and exit rights.",
     visual: "rules",
@@ -552,8 +535,6 @@ const chapters: Chapter[] = [
     concept: "Change the world and rerun the trust problem.",
     prompt:
       "Tune noise, future interaction, reputation quality and AI calibration. The system responds immediately.",
-    voice:
-      "This is the lab bench. Change one variable at a time and watch which kind of trust becomes sustainable.",
     characters: ["Scout", "Echo", "Compass"],
     research: "Seeded counterfactuals, sensitivity testing and simulation literacy.",
     visual: "sandbox",
@@ -641,13 +622,11 @@ export default function Home() {
   const [tokens, setTokens] = useState(6);
   const [round, setRound] = useState(1);
   const [lastAction, setLastAction] = useState<Action>(chapters[0].actions[0]);
-  const [voiceOn, setVoiceOn] = useState(false);
-  const [musicOn, setMusicOn] = useState(false);
+  const [effectsOn, setEffectsOn] = useState(false);
+  const [ambientOn, setAmbientOn] = useState(false);
   const [audioUnlocked, setAudioUnlocked] = useState(false);
-  const [voiceState, setVoiceState] = useState<"off" | "ready" | "speaking" | "unavailable">("off");
-  const [availableVoices, setAvailableVoices] = useState<SpeechSynthesisVoice[]>([]);
+  const [soundState, setSoundState] = useState<"off" | "ready" | "playing">("off");
   const [motionOff, setMotionOff] = useState(false);
-  const [transcriptOpen, setTranscriptOpen] = useState(false);
   const [pulse, setPulse] = useState(0);
   const [sandbox, setSandbox] = useState({
     future: 68,
@@ -655,7 +634,6 @@ export default function Home() {
     reputation: 58,
     ai: 62,
   });
-  const narrationRef = useRef<HTMLAudioElement | null>(null);
   const musicRef = useRef<HTMLAudioElement | null>(null);
   const sfxRef = useRef<HTMLAudioElement | null>(null);
 
@@ -680,80 +658,29 @@ export default function Home() {
   }, [motionOff]);
 
   useEffect(() => {
-    if (!("speechSynthesis" in window)) {
-      return;
-    }
-
-    const syncVoices = () => setAvailableVoices(window.speechSynthesis.getVoices());
-    syncVoices();
-    window.speechSynthesis.addEventListener("voiceschanged", syncVoices);
-
-    return () => window.speechSynthesis.removeEventListener("voiceschanged", syncVoices);
-  }, []);
-
-  useEffect(() => {
     return () => {
-      window.speechSynthesis?.cancel();
-      narrationRef.current?.pause();
       musicRef.current?.pause();
       sfxRef.current?.pause();
     };
   }, []);
 
-  function playTone(tone: Action["tone"]) {
-    if (!audioUnlocked) return;
+  function playTone(tone: Action["tone"], force = false) {
+    if ((!audioUnlocked || !effectsOn) && !force) return;
 
     sfxRef.current?.pause();
     const audio = new Audio(`/audio/tone-${tone}.mp3`);
-    audio.volume = 0.72;
+    audio.volume = 0.82;
+    audio.onplay = () => setSoundState("playing");
+    audio.onended = () => setSoundState("ready");
+    audio.onerror = () => setSoundState("ready");
     sfxRef.current = audio;
-    void audio.play().catch(() => undefined);
-  }
-
-  function speak(text: string, force = false) {
-    if ((!voiceOn && !force) || !("speechSynthesis" in window)) return;
-
-    window.speechSynthesis.cancel();
-    const utterance = new SpeechSynthesisUtterance(text);
-    const preferredVoice =
-      availableVoices.find(
-        (voice) =>
-          voice.lang.startsWith("en") &&
-          /(samantha|ava|serena|daniel|karen|aria|natural|google uk english)/i.test(voice.name),
-      ) ?? availableVoices.find((voice) => voice.lang.startsWith("en"));
-
-    if (preferredVoice) utterance.voice = preferredVoice;
-    utterance.rate = 0.9;
-    utterance.pitch = 1;
-    utterance.volume = 1;
-    utterance.onstart = () => setVoiceState("speaking");
-    utterance.onend = () => setVoiceState("ready");
-    utterance.onerror = () => setVoiceState("ready");
-    window.speechSynthesis.speak(utterance);
-  }
-
-  function playVoiceClip(source: string, fallbackText: string, force = false) {
-    if (!voiceOn && !force) return;
-
-    window.speechSynthesis?.cancel();
-    narrationRef.current?.pause();
-    const audio = new Audio(source);
-    audio.volume = 0.96;
-    audio.onplay = () => setVoiceState("speaking");
-    audio.onended = () => setVoiceState("ready");
-    audio.onerror = () => speak(fallbackText, true);
-    narrationRef.current = audio;
-    void audio.play().catch(() => speak(fallbackText, true));
-  }
-
-  function playNarration(chapterId: string, fallbackText: string, force = false) {
-    playVoiceClip(`/audio/chapter-${chapterId}.mp3`, fallbackText, force);
+    void audio.play().catch(() => setSoundState("ready"));
   }
 
   async function startAmbient() {
     if (musicRef.current) {
       await musicRef.current.play();
-      setMusicOn(true);
+      setAmbientOn(true);
       return;
     }
 
@@ -762,21 +689,21 @@ export default function Home() {
     audio.volume = 0.28;
     musicRef.current = audio;
     await audio.play();
-    setMusicOn(true);
+    setAmbientOn(true);
   }
 
   function stopAmbient() {
     musicRef.current?.pause();
-    setMusicOn(false);
+    setAmbientOn(false);
   }
 
-  async function toggleMusic() {
+  async function toggleAmbient() {
     if (!audioUnlocked) {
       await activateAudio(true);
       return;
     }
 
-    if (musicOn) {
+    if (ambientOn) {
       stopAmbient();
       return;
     }
@@ -785,30 +712,29 @@ export default function Home() {
       await startAmbient();
       playTone("soft");
     } catch {
-      setMusicOn(false);
+      setAmbientOn(false);
     }
   }
 
   async function activateAudio(includeAmbient = true) {
     setAudioUnlocked(true);
-    setVoiceOn(true);
-    setVoiceState("ready");
-    playNarration(chapter.id, `${chapter.title}. ${chapter.voice}`, true);
+    setEffectsOn(true);
+    setSoundState("ready");
+    playTone("bright", true);
     if (includeAmbient) {
-      void startAmbient().catch(() => setMusicOn(false));
+      void startAmbient().catch(() => setAmbientOn(false));
     }
   }
 
-  function toggleVoice() {
-    if (!voiceOn) {
+  function toggleEffects() {
+    if (!effectsOn) {
       void activateAudio(false);
       return;
     }
 
-    window.speechSynthesis?.cancel();
-    narrationRef.current?.pause();
-    setVoiceOn(false);
-    setVoiceState("off");
+    sfxRef.current?.pause();
+    setEffectsOn(false);
+    setSoundState("off");
   }
 
   function chooseChapter(index: number) {
@@ -816,7 +742,6 @@ export default function Home() {
     setActiveIndex(index);
     setLastAction(next.actions[0]);
     setPulse((value) => value + 1);
-    playNarration(next.id, `${next.title}. ${next.voice}`);
     playTone("soft");
   }
 
@@ -828,10 +753,6 @@ export default function Home() {
     setRound((value) => value + 1);
     setPulse((value) => value + 1);
     playTone(action.tone);
-    playVoiceClip(
-      `/audio/action-${action.id}.mp3`,
-      `${action.line} ${action.result} ${action.lesson}`,
-    );
   }
 
   function resetLab() {
@@ -843,7 +764,7 @@ export default function Home() {
     setLastAction(chapters[0].actions[0]);
     setSandbox({ future: 68, error: 16, reputation: 58, ai: 62 });
     setPulse((value) => value + 1);
-    playNarration(chapters[0].id, chapters[0].voice);
+    playTone("bright");
   }
 
   return (
@@ -856,20 +777,20 @@ export default function Home() {
 
         <div className="header-actions">
           <button
-            className={voiceOn ? "icon-button active" : "icon-button"}
+            className={effectsOn ? "icon-button active" : "icon-button"}
             type="button"
-            aria-pressed={voiceOn}
-            onClick={toggleVoice}
+            aria-pressed={effectsOn}
+            onClick={toggleEffects}
           >
-            {voiceOn ? "Voice on" : "Voice off"}
+            {effectsOn ? "FX on" : "FX off"}
           </button>
           <button
-            className={musicOn ? "icon-button active" : "icon-button"}
+            className={ambientOn ? "icon-button active" : "icon-button"}
             type="button"
-            aria-pressed={musicOn}
-            onClick={toggleMusic}
+            aria-pressed={ambientOn}
+            onClick={toggleAmbient}
           >
-            {musicOn ? "Sound on" : "Sound off"}
+            {ambientOn ? "Ambient on" : "Ambient off"}
           </button>
           <button
             className={motionOff ? "icon-button active" : "icon-button"}
@@ -890,33 +811,24 @@ export default function Home() {
           className="audio-start"
           type="button"
           onClick={() => void activateAudio(true)}
-          disabled={voiceState === "unavailable"}
         >
-          <span className="audio-icon" aria-hidden="true">{audioUnlocked ? "▶" : "♪"}</span>
+          <span className="audio-icon" aria-hidden="true">{audioUnlocked ? "♪" : "▶"}</span>
           <span>
-            <strong>
-              {voiceState === "unavailable"
-                ? "Audio unavailable"
-                : audioUnlocked
-                  ? voiceState === "speaking"
-                    ? "Dot is speaking"
-                    : "Replay scene narration"
-                  : "Start voice + sound"}
-            </strong>
+            <strong>{audioUnlocked ? "Game sounds ready" : "Start game audio"}</strong>
             <small>
               {audioUnlocked
-                ? musicOn
-                  ? "Narration and ambient sound are on"
-                  : "Narration is ready"
-                : "Tap once to unlock the full experience"}
+                ? ambientOn
+                  ? "Animated effects and soft ambience are on"
+                  : "Animated effects are on"
+                : "Playful feedback sounds for every move"}
             </small>
           </span>
         </button>
-        <div className={voiceState === "speaking" ? "voice-wave speaking" : "voice-wave"} aria-hidden="true">
+        <div className={soundState === "playing" ? "sound-wave playing" : "sound-wave"} aria-hidden="true">
           {Array.from({ length: 12 }).map((_, index) => <i key={index} />)}
         </div>
         <span className="audio-status">
-          {voiceState === "speaking" ? "Speaking now" : audioUnlocked ? "Audio ready" : "Waiting for your tap"}
+          {soundState === "playing" ? "Boop!" : audioUnlocked ? "Audio ready" : "Waiting for your tap"}
         </span>
       </section>
 
@@ -947,13 +859,6 @@ export default function Home() {
           <p className="caption">
             <strong>Dot:</strong> {lastAction.line}
           </p>
-          <button
-            className="text-button"
-            type="button"
-            onClick={() => playNarration(chapter.id, `${chapter.voice} ${lastAction.lesson}`)}
-          >
-            Replay line
-          </button>
         </aside>
 
         <section className={`lab-canvas ${chapter.visual}`} data-pulse={pulse}>
@@ -1028,13 +933,6 @@ export default function Home() {
             <span>{lastAction.lesson}</span>
           </div>
 
-          <button
-            className="text-button"
-            type="button"
-            onClick={() => setTranscriptOpen((value) => !value)}
-          >
-            {transcriptOpen ? "Hide transcript" : "Show transcript"}
-          </button>
         </aside>
       </section>
 
@@ -1066,15 +964,6 @@ export default function Home() {
         </div>
       </section>
 
-      {transcriptOpen && (
-        <section className="transcript" aria-label="Voice transcript">
-          <h2>Transcript</h2>
-          <p>{chapter.voice}</p>
-          <p>{lastAction.line}</p>
-          <p>{lastAction.result}</p>
-          <p>{lastAction.lesson}</p>
-        </section>
-      )}
     </main>
   );
 }
@@ -1251,10 +1140,4 @@ function ScoreBar({ label, value, inverse = false }: { label: string; value: num
       <strong>{Math.round(value)}</strong>
     </div>
   );
-}
-
-declare global {
-  interface Window {
-    webkitAudioContext?: typeof AudioContext;
-  }
 }
