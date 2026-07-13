@@ -56,9 +56,9 @@ test("keeps Trust Lab product files free of starter preview imports", async () =
   assert.match(page, /See your learning progress/);
   assert.match(page, /Next lesson/);
   assert.match(page, /className="move-picker"/);
-  assert.match(page, /Score: You \$\{youScore\}, World \$\{worldScore\}/);
+  assert.match(page, /Score: You \$\{youScore\}, Characters \$\{characterScore\}/);
   assert.match(page, /You win/);
-  assert.match(page, /World wins/);
+  assert.match(page, /Characters win/);
   assert.match(page, /Trust \{lastAction\.trustShift >= 0 \? "gained" : "lost"\}/);
   assert.match(page, /function scoreMove\(action: Action\)/);
   assert.match(page, /tone-\$\{tone\}\.mp3/);

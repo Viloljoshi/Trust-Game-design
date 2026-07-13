@@ -834,7 +834,7 @@ input:focus-visible {
   color: var(--teal);
 }
 
-.world-score strong {
+.character-score strong {
   color: var(--coral);
 }
 
@@ -2063,7 +2063,7 @@ input:focus-visible {
 
   .scoreboard {
     gap: 5px;
-    grid-template-columns: 64px 1fr 64px;
+    grid-template-columns: 64px 1fr 82px;
     padding: 7px;
     top: 48px;
     width: calc(100% - 24px);
@@ -2076,6 +2076,10 @@ input:focus-visible {
 
   .score-side strong {
     font-size: 1.35rem;
+  }
+
+  .character-score span {
+    font-size: 0.56rem;
   }
 
   .round-verdict {

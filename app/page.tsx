@@ -47,7 +47,7 @@ type Character = {
 
 type RoundScore = {
   you: number;
-  world: number;
+  characters: number;
   verdict: "win" | "draw" | "loss";
 };
 
@@ -601,10 +601,10 @@ function updateMetrics(metrics: Metrics, deltas: Partial<Metrics>): Metrics {
 
 function scoreMove(action: Action): RoundScore {
   const you = clamp(2 + action.tokens, 0, 6);
-  const world = clamp(2 + Math.round(action.trustShift / 5), 0, 6);
-  const verdict = you === world ? "draw" : you > world ? "win" : "loss";
+  const characters = clamp(2 + Math.round(action.trustShift / 5), 0, 6);
+  const verdict = you === characters ? "draw" : you > characters ? "win" : "loss";
 
-  return { you, world, verdict };
+  return { you, characters, verdict };
 }
 
 function metricLabel(key: MetricKey) {
@@ -627,7 +627,7 @@ export default function Home() {
   const [trust, setTrust] = useState(46);
   const [tokens, setTokens] = useState(6);
   const [youScore, setYouScore] = useState(0);
-  const [worldScore, setWorldScore] = useState(0);
+  const [characterScore, setCharacterScore] = useState(0);
   const [roundScore, setRoundScore] = useState<RoundScore | null>(null);
   const [round, setRound] = useState(1);
   const [lastAction, setLastAction] = useState<Action>(chapters[0].actions[0]);
@@ -712,7 +712,7 @@ export default function Home() {
     setHasChosen(true);
     setRoundScore(score);
     setYouScore((value) => value + score.you);
-    setWorldScore((value) => value + score.world);
+    setCharacterScore((value) => value + score.characters);
     setTrust((value) => clamp(value + action.trustShift));
     setTokens((value) => Math.max(0, value + action.tokens));
     setMetrics((value) => updateMetrics(value, action.deltas));
@@ -727,7 +727,7 @@ export default function Home() {
     setTrust(46);
     setTokens(6);
     setYouScore(0);
-    setWorldScore(0);
+    setCharacterScore(0);
     setRoundScore(null);
     setRound(1);
     setLastAction(chapters[0].actions[0]);
@@ -909,7 +909,7 @@ export default function Home() {
 
           <div
             className="scoreboard"
-            aria-label={`Score: You ${youScore}, World ${worldScore}`}
+            aria-label={`Score: You ${youScore}, Characters ${characterScore}`}
             aria-live="polite"
           >
             <div className="score-side you-score"><span>You</span><strong>{youScore}</strong></div>
@@ -920,16 +920,16 @@ export default function Home() {
                   : roundScore.verdict === "win"
                     ? "You win"
                     : roundScore.verdict === "loss"
-                      ? "World wins"
+                      ? "Characters win"
                       : "Draw"}
               </strong>
               <span>
                 {roundScore
-                  ? `+${roundScore.you} : +${roundScore.world}`
+                  ? `+${roundScore.you} : +${roundScore.characters}`
                   : "this round"}
               </span>
             </div>
-            <div className="score-side world-score"><span>World</span><strong>{worldScore}</strong></div>
+            <div className="score-side character-score"><span>Characters</span><strong>{characterScore}</strong></div>
           </div>
 
           <div className="relationship-wrap" aria-hidden="true">
