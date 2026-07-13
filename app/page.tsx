@@ -641,8 +641,11 @@ export default function Home() {
   const [tokens, setTokens] = useState(6);
   const [round, setRound] = useState(1);
   const [lastAction, setLastAction] = useState<Action>(chapters[0].actions[0]);
-  const [voiceOn, setVoiceOn] = useState(true);
+  const [voiceOn, setVoiceOn] = useState(false);
   const [musicOn, setMusicOn] = useState(false);
+  const [audioUnlocked, setAudioUnlocked] = useState(false);
+  const [voiceState, setVoiceState] = useState<"off" | "ready" | "speaking" | "unavailable">("off");
+  const [availableVoices, setAvailableVoices] = useState<SpeechSynthesisVoice[]>([]);
   const [motionOff, setMotionOff] = useState(false);
   const [transcriptOpen, setTranscriptOpen] = useState(false);
   const [pulse, setPulse] = useState(0);
@@ -652,8 +655,9 @@ export default function Home() {
     reputation: 58,
     ai: 62,
   });
-  const audioRef = useRef<AudioContext | null>(null);
-  const musicRef = useRef<OscillatorNode | null>(null);
+  const narrationRef = useRef<HTMLAudioElement | null>(null);
+  const musicRef = useRef<HTMLAudioElement | null>(null);
+  const sfxRef = useRef<HTMLAudioElement | null>(null);
 
   const chapter = chapters[activeIndex];
   const activeCharacters = chapter.characters.map((name) => characters[name]);
@@ -676,77 +680,131 @@ export default function Home() {
   }, [motionOff]);
 
   useEffect(() => {
-    return () => {
-      window.speechSynthesis?.cancel();
-      musicRef.current?.stop();
-      audioRef.current?.close();
-    };
-  }, []);
-
-  function ensureAudio() {
-    if (!audioRef.current) {
-      const AudioCtor = window.AudioContext || window.webkitAudioContext;
-      audioRef.current = new AudioCtor();
-    }
-
-    return audioRef.current;
-  }
-
-  function playTone(tone: Action["tone"]) {
-    if (!voiceOn && !musicOn) return;
-
-    const context = ensureAudio();
-    const oscillator = context.createOscillator();
-    const gain = context.createGain();
-    const frequencies = {
-      soft: 392,
-      bright: 528,
-      low: 196,
-      alert: 164,
-    };
-
-    oscillator.type = tone === "alert" ? "sawtooth" : "sine";
-    oscillator.frequency.setValueAtTime(frequencies[tone], context.currentTime);
-    gain.gain.setValueAtTime(0.0001, context.currentTime);
-    gain.gain.exponentialRampToValueAtTime(tone === "alert" ? 0.08 : 0.045, context.currentTime + 0.02);
-    gain.gain.exponentialRampToValueAtTime(0.0001, context.currentTime + 0.32);
-    oscillator.connect(gain);
-    gain.connect(context.destination);
-    oscillator.start();
-    oscillator.stop(context.currentTime + 0.35);
-  }
-
-  function speak(text: string) {
-    if (!voiceOn || !("speechSynthesis" in window)) return;
-
-    window.speechSynthesis.cancel();
-    const utterance = new SpeechSynthesisUtterance(text);
-    utterance.rate = 0.92;
-    utterance.pitch = 1.02;
-    utterance.volume = 0.86;
-    window.speechSynthesis.speak(utterance);
-  }
-
-  function toggleMusic() {
-    const context = ensureAudio();
-
-    if (musicOn) {
-      musicRef.current?.stop();
-      musicRef.current = null;
-      setMusicOn(false);
+    if (!("speechSynthesis" in window)) {
       return;
     }
 
-    const oscillator = context.createOscillator();
-    const gain = context.createGain();
-    oscillator.type = "triangle";
-    oscillator.frequency.value = 110;
-    gain.gain.value = 0.018;
-    oscillator.connect(gain);
-    gain.connect(context.destination);
-    oscillator.start();
-    musicRef.current = oscillator;
+    const syncVoices = () => setAvailableVoices(window.speechSynthesis.getVoices());
+    syncVoices();
+    window.speechSynthesis.addEventListener("voiceschanged", syncVoices);
+
+    return () => window.speechSynthesis.removeEventListener("voiceschanged", syncVoices);
+  }, []);
+
+  useEffect(() => {
+    return () => {
+      window.speechSynthesis?.cancel();
+      narrationRef.current?.pause();
+      musicRef.current?.pause();
+      sfxRef.current?.pause();
+    };
+  }, []);
+
+  function playTone(tone: Action["tone"]) {
+    if (!audioUnlocked) return;
+
+    sfxRef.current?.pause();
+    const audio = new Audio(`/audio/tone-${tone}.mp3`);
+    audio.volume = 0.72;
+    sfxRef.current = audio;
+    void audio.play();
+  }
+
+  function speak(text: string, force = false) {
+    if ((!voiceOn && !force) || !("speechSynthesis" in window)) return;
+
+    window.speechSynthesis.cancel();
+    const utterance = new SpeechSynthesisUtterance(text);
+    const preferredVoice =
+      availableVoices.find(
+        (voice) =>
+          voice.lang.startsWith("en") &&
+          /(samantha|ava|serena|daniel|karen|aria|natural|google uk english)/i.test(voice.name),
+      ) ?? availableVoices.find((voice) => voice.lang.startsWith("en"));
+
+    if (preferredVoice) utterance.voice = preferredVoice;
+    utterance.rate = 0.9;
+    utterance.pitch = 1;
+    utterance.volume = 1;
+    utterance.onstart = () => setVoiceState("speaking");
+    utterance.onend = () => setVoiceState("ready");
+    utterance.onerror = () => setVoiceState("ready");
+    window.speechSynthesis.speak(utterance);
+  }
+
+  function playVoiceClip(source: string, fallbackText: string, force = false) {
+    if (!voiceOn && !force) return;
+
+    window.speechSynthesis?.cancel();
+    narrationRef.current?.pause();
+    const audio = new Audio(source);
+    audio.volume = 0.96;
+    audio.onplay = () => setVoiceState("speaking");
+    audio.onended = () => setVoiceState("ready");
+    audio.onerror = () => speak(fallbackText, true);
+    narrationRef.current = audio;
+    void audio.play().catch(() => speak(fallbackText, true));
+  }
+
+  function playNarration(chapterId: string, fallbackText: string, force = false) {
+    playVoiceClip(`/audio/chapter-${chapterId}.mp3`, fallbackText, force);
+  }
+
+  async function startAmbient() {
+    if (musicRef.current) {
+      await musicRef.current.play();
+      setMusicOn(true);
+      return;
+    }
+
+    const audio = new Audio("/audio/ambient.mp3");
+    audio.loop = true;
+    audio.volume = 0.28;
+    musicRef.current = audio;
+    await audio.play();
     setMusicOn(true);
+  }
+
+  function stopAmbient() {
+    musicRef.current?.pause();
+    setMusicOn(false);
+  }
+
+  async function toggleMusic() {
+    if (!audioUnlocked) {
+      await activateAudio(true);
+      return;
+    }
+
+    if (musicOn) {
+      stopAmbient();
+      return;
+    }
+
+    await startAmbient();
+    playTone("soft");
+  }
+
+  async function activateAudio(includeAmbient = true) {
+    setAudioUnlocked(true);
+    setVoiceOn(true);
+    setVoiceState("ready");
+    playNarration(chapter.id, `${chapter.title}. ${chapter.voice}`, true);
+    if (includeAmbient) {
+      void startAmbient().catch(() => setMusicOn(false));
+    }
+  }
+
+  function toggleVoice() {
+    if (!voiceOn) {
+      void activateAudio(false);
+      return;
+    }
+
+    window.speechSynthesis?.cancel();
+    narrationRef.current?.pause();
+    setVoiceOn(false);
+    setVoiceState("off");
   }
 
   function chooseChapter(index: number) {
@@ -754,7 +812,7 @@ export default function Home() {
     setActiveIndex(index);
     setLastAction(next.actions[0]);
     setPulse((value) => value + 1);
-    speak(`${next.title}. ${next.voice}`);
+    playNarration(next.id, `${next.title}. ${next.voice}`);
     playTone("soft");
   }
 
@@ -766,7 +824,10 @@ export default function Home() {
     setRound((value) => value + 1);
     setPulse((value) => value + 1);
     playTone(action.tone);
-    speak(`${action.line} ${action.result} ${action.lesson}`);
+    playVoiceClip(
+      `/audio/action-${action.id}.mp3`,
+      `${action.line} ${action.result} ${action.lesson}`,
+    );
   }
 
   function resetLab() {
@@ -778,7 +839,7 @@ export default function Home() {
     setLastAction(chapters[0].actions[0]);
     setSandbox({ future: 68, error: 16, reputation: 58, ai: 62 });
     setPulse((value) => value + 1);
-    speak(chapters[0].voice);
+    playNarration(chapters[0].id, chapters[0].voice);
   }
 
   return (
@@ -794,9 +855,9 @@ export default function Home() {
             className={voiceOn ? "icon-button active" : "icon-button"}
             type="button"
             aria-pressed={voiceOn}
-            onClick={() => setVoiceOn((value) => !value)}
+            onClick={toggleVoice}
           >
-            Voice
+            {voiceOn ? "Voice on" : "Voice off"}
           </button>
           <button
             className={musicOn ? "icon-button active" : "icon-button"}
@@ -804,7 +865,7 @@ export default function Home() {
             aria-pressed={musicOn}
             onClick={toggleMusic}
           >
-            Sound
+            {musicOn ? "Sound on" : "Sound off"}
           </button>
           <button
             className={motionOff ? "icon-button active" : "icon-button"}
@@ -819,6 +880,41 @@ export default function Home() {
           </button>
         </div>
       </header>
+
+      <section className={audioUnlocked ? "audio-console unlocked" : "audio-console"} aria-live="polite">
+        <button
+          className="audio-start"
+          type="button"
+          onClick={() => void activateAudio(true)}
+          disabled={voiceState === "unavailable"}
+        >
+          <span className="audio-icon" aria-hidden="true">{audioUnlocked ? "▶" : "♪"}</span>
+          <span>
+            <strong>
+              {voiceState === "unavailable"
+                ? "Audio unavailable"
+                : audioUnlocked
+                  ? voiceState === "speaking"
+                    ? "Dot is speaking"
+                    : "Replay scene narration"
+                  : "Start voice + sound"}
+            </strong>
+            <small>
+              {audioUnlocked
+                ? musicOn
+                  ? "Narration and ambient sound are on"
+                  : "Narration is ready"
+                : "Tap once to unlock the full experience"}
+            </small>
+          </span>
+        </button>
+        <div className={voiceState === "speaking" ? "voice-wave speaking" : "voice-wave"} aria-hidden="true">
+          {Array.from({ length: 12 }).map((_, index) => <i key={index} />)}
+        </div>
+        <span className="audio-status">
+          {voiceState === "speaking" ? "Speaking now" : audioUnlocked ? "Audio ready" : "Waiting for your tap"}
+        </span>
+      </section>
 
       <nav className="chapter-rail" aria-label="Trust Lab chapters">
         {chapters.map((item, index) => (
@@ -850,7 +946,7 @@ export default function Home() {
           <button
             className="text-button"
             type="button"
-            onClick={() => speak(`${chapter.voice} ${lastAction.lesson}`)}
+            onClick={() => playNarration(chapter.id, `${chapter.voice} ${lastAction.lesson}`)}
           >
             Replay line
           </button>
