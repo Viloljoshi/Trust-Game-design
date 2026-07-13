@@ -60,6 +60,10 @@ test("keeps Trust Lab product files free of starter preview imports", async () =
   assert.match(page, /You win/);
   assert.match(page, /Characters win/);
   assert.match(page, /Trust \{lastAction\.trustShift >= 0 \? "gained" : "lost"\}/);
+  assert.match(page, /What happened/);
+  assert.match(page, /Remember/);
+  assert.match(page, /role: "checks the source"/);
+  assert.match(page, /Check what happened before blaming someone/);
   assert.match(page, /function scoreMove\(action: Action\)/);
   assert.match(page, /const AUTO_ADVANCE_MS = 5_000/);
   assert.match(page, /window\.setTimeout\([\s\S]*chooseChapter\(activeIndex \+ 1\)/);

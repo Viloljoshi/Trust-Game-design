@@ -520,7 +520,7 @@ input:focus-visible {
 
 .story-panel {
   grid-area: story;
-  min-height: 560px;
+  min-height: 600px;
   padding: clamp(18px, 2.4vw, 28px);
   position: relative;
 }
@@ -640,7 +640,7 @@ input:focus-visible {
     #fffef9;
   background-size: 34px 34px;
   grid-area: canvas;
-  min-height: 560px;
+  min-height: 600px;
   overflow: hidden;
   padding: 18px;
   position: relative;
@@ -713,9 +713,26 @@ input:focus-visible {
   align-items: center;
   display: flex;
   flex-direction: column;
-  gap: 11px;
+  gap: 7px;
   margin: 0;
   min-width: 112px;
+}
+
+.character-shell {
+  height: 146px;
+  position: relative;
+  width: 124px;
+}
+
+.character-shadow {
+  background: rgba(57, 53, 48, 0.12);
+  border-radius: 50%;
+  bottom: 8px;
+  height: 20px;
+  left: 14px;
+  position: absolute;
+  transform: skewX(-12deg);
+  width: 102px;
 }
 
 .body {
@@ -725,9 +742,41 @@ input:focus-visible {
   border-radius: 42% 58% 48% 52% / 56% 46% 54% 44%;
   box-shadow: 8px 12px 0 rgba(57, 53, 48, 0.08);
   height: 126px;
-  position: relative;
+  left: 6px;
+  overflow: hidden;
+  position: absolute;
+  top: 0;
   transform: rotate(-1.2deg);
   width: 112px;
+}
+
+.shine {
+  background: rgba(255, 255, 255, 0.36);
+  border-radius: 50%;
+  height: 52px;
+  left: 13px;
+  position: absolute;
+  top: 9px;
+  transform: rotate(-24deg);
+  width: 22px;
+}
+
+.brow {
+  border-top: 2px solid rgba(57, 53, 48, 0.72);
+  height: 4px;
+  position: absolute;
+  top: 32px;
+  width: 15px;
+}
+
+.brow.left {
+  left: 32px;
+  transform: rotate(5deg);
+}
+
+.brow.right {
+  right: 30px;
+  transform: rotate(-5deg);
 }
 
 .eye {
@@ -757,11 +806,28 @@ input:focus-visible {
   width: 28px;
 }
 
+.cheek {
+  background: rgba(243, 125, 112, 0.22);
+  border-radius: 50%;
+  height: 9px;
+  position: absolute;
+  top: 62px;
+  width: 14px;
+}
+
+.cheek.left {
+  left: 18px;
+}
+
+.cheek.right {
+  right: 17px;
+}
+
 .prop {
   background: rgba(255, 255, 255, 0.86);
   border: 2px solid var(--line);
   border-radius: 999px;
-  bottom: -12px;
+  bottom: 0;
   font-size: 0.62rem;
   font-weight: 900;
   left: 50%;
@@ -772,6 +838,7 @@ input:focus-visible {
   text-overflow: ellipsis;
   transform: translateX(-50%) rotate(1deg);
   white-space: nowrap;
+  z-index: 3;
 }
 
 .agent figcaption {
@@ -788,7 +855,12 @@ input:focus-visible {
 }
 
 .agent figcaption span {
-  display: none;
+  color: var(--muted);
+  font-size: 0.66rem;
+  font-weight: 800;
+  line-height: 1.2;
+  margin-top: 3px;
+  max-width: 122px;
 }
 
 .scoreboard {
@@ -799,7 +871,7 @@ input:focus-visible {
   box-shadow: 5px 6px 0 rgba(57, 53, 48, 0.12);
   display: grid;
   gap: 10px;
-  grid-template-columns: 86px minmax(140px, 1fr) 86px;
+  grid-template-columns: 72px minmax(140px, 1fr) 104px;
   left: 50%;
   max-width: 430px;
   min-height: 72px;
@@ -836,6 +908,14 @@ input:focus-visible {
 
 .character-score strong {
   color: var(--coral);
+}
+
+.character-score {
+  gap: 5px;
+}
+
+.character-score span {
+  font-size: 0.6rem;
 }
 
 .round-verdict {
@@ -875,6 +955,7 @@ input:focus-visible {
 
 .scout .body {
   background: #f8e6bd;
+  border-radius: 48% 52% 44% 56% / 58% 52% 48% 42%;
 }
 
 .scout .prop {
@@ -883,6 +964,10 @@ input:focus-visible {
 
 .patch .body {
   background: #ffd0c8;
+}
+
+.patch .brow.right {
+  transform: rotate(12deg);
 }
 
 .patch .body::after {
@@ -903,9 +988,26 @@ input:focus-visible {
   border-radius: 12px;
 }
 
+.wall .mouth {
+  border-radius: 0;
+  left: 45px;
+  width: 22px;
+}
+
 .velvet .body {
   background: #d9b2e1;
   border-radius: 54% 46% 45% 55% / 50% 42% 58% 50%;
+}
+
+.velvet .eye {
+  height: 7px;
+  top: 45px;
+}
+
+.velvet .mouth {
+  left: 49px;
+  transform: rotate(-8deg);
+  width: 24px;
 }
 
 .echo .body {
@@ -933,9 +1035,24 @@ input:focus-visible {
   top: 86px;
 }
 
+.echo .brow.left {
+  transform: rotate(-8deg);
+}
+
+.echo .brow.right {
+  transform: rotate(8deg);
+}
+
 .drift .body {
   background: #e6e1d8;
   border-radius: 54% 46% 61% 39% / 50% 55% 45% 50%;
+}
+
+.drift .mouth {
+  border-bottom: 0;
+  border-radius: 999px 999px 0 0;
+  border-top: 3px solid var(--line);
+  top: 72px;
 }
 
 .ledger .body {
@@ -943,8 +1060,33 @@ input:focus-visible {
   border-radius: 12px;
 }
 
+.ledger .body::before {
+  border-bottom: 3px solid rgba(57, 53, 48, 0.45);
+  border-top: 3px solid rgba(57, 53, 48, 0.45);
+  bottom: 18px;
+  content: "";
+  height: 9px;
+  left: 24px;
+  position: absolute;
+  width: 64px;
+}
+
 .mask .body {
   background: linear-gradient(90deg, #d9c7ff 0 50%, #f8f0ff 50% 100%);
+}
+
+.mask .body::before {
+  background: rgba(57, 53, 48, 0.25);
+  content: "";
+  height: 100%;
+  left: 50%;
+  position: absolute;
+  top: 0;
+  width: 2px;
+}
+
+.mask .brow.right {
+  transform: rotate(15deg);
 }
 
 .lens .body {
@@ -952,14 +1094,43 @@ input:focus-visible {
   border-radius: 50%;
 }
 
+.lens .eye.right {
+  box-shadow: 0 0 0 5px #ffffff, 0 0 0 8px var(--line);
+}
+
+.lens .eye.right::after {
+  background: var(--line);
+  content: "";
+  height: 20px;
+  left: 13px;
+  position: absolute;
+  top: 10px;
+  transform: rotate(-38deg);
+  width: 3px;
+}
+
 .spark .body {
   background: #ffadd1;
   border-radius: 38% 62% 42% 58% / 58% 40% 60% 42%;
 }
 
+.spark .cheek {
+  background: rgba(239, 101, 71, 0.45);
+}
+
+.spark .mouth {
+  left: 39px;
+  width: 35px;
+}
+
 .oracle .body {
   background: #d7caff;
   border-radius: 22px;
+  overflow: visible;
+}
+
+.oracle .eye {
+  border-radius: 2px;
 }
 
 .oracle .body::before {
@@ -977,6 +1148,14 @@ input:focus-visible {
 .compass .body {
   background: #cdd6ff;
   clip-path: polygon(50% 0, 100% 50%, 50% 100%, 0 50%);
+}
+
+.compass .brow.left {
+  transform: rotate(-10deg);
+}
+
+.compass .brow.right {
+  transform: rotate(10deg);
 }
 
 .architect .body {
@@ -997,7 +1176,7 @@ input:focus-visible {
 }
 
 .scene {
-  bottom: 24px;
+  bottom: 16px;
   left: 24px;
   min-height: 194px;
   position: absolute;
@@ -1590,8 +1769,9 @@ input:focus-visible {
 
 .result-summary > strong,
 .result-summary > span,
-.result-learning > strong,
-.result-learning > span {
+.result-learning strong,
+.result-learning span,
+.result-learning small {
   display: block;
 }
 
@@ -1613,12 +1793,31 @@ input:focus-visible {
   color: var(--red);
 }
 
-.result-learning > strong {
+.result-learning {
+  display: grid;
+  gap: 10px;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.result-learning > div + div {
+  border-left: 2px solid rgba(57, 53, 48, 0.14);
+  padding-left: 16px;
+}
+
+.result-learning small {
+  color: var(--teal);
+  font-size: 0.66rem;
+  font-weight: 900;
+  margin-bottom: 3px;
+  text-transform: uppercase;
+}
+
+.result-learning strong {
   font-size: 0.94rem;
   margin-bottom: 5px;
 }
 
-.result-learning > span {
+.result-learning span {
   color: var(--muted);
   font-size: 0.82rem;
 }
@@ -2026,6 +2225,17 @@ input:focus-visible {
     padding-right: 0;
   }
 
+  .result-learning {
+    grid-template-columns: 1fr;
+  }
+
+  .result-learning > div + div {
+    border-left: 0;
+    border-top: 2px solid rgba(57, 53, 48, 0.14);
+    padding-left: 0;
+    padding-top: 10px;
+  }
+
   .next-lesson {
     justify-content: space-between;
     width: 100%;
@@ -2094,9 +2304,42 @@ input:focus-visible {
     min-width: 84px;
   }
 
+  .character-shell {
+    height: 110px;
+    width: 94px;
+  }
+
+  .character-shadow {
+    bottom: 4px;
+    height: 14px;
+    left: 8px;
+    width: 78px;
+  }
+
   .body {
     height: 92px;
+    left: 6px;
     width: 82px;
+  }
+
+  .shine {
+    height: 38px;
+    left: 9px;
+    top: 7px;
+    width: 15px;
+  }
+
+  .brow {
+    top: 22px;
+    width: 11px;
+  }
+
+  .brow.left {
+    left: 22px;
+  }
+
+  .brow.right {
+    right: 21px;
   }
 
   .eye {
@@ -2119,9 +2362,35 @@ input:focus-visible {
     width: 21px;
   }
 
+  .cheek {
+    height: 7px;
+    top: 45px;
+    width: 10px;
+  }
+
+  .cheek.left {
+    left: 10px;
+  }
+
+  .cheek.right {
+    right: 9px;
+  }
+
   .prop {
     font-size: 0.55rem;
     max-width: 80px;
+  }
+
+  .agent figcaption span {
+    font-size: 0.58rem;
+    max-width: 94px;
+  }
+
+  .oracle .body::before {
+    height: 104px;
+    left: -15px;
+    top: -10px;
+    width: 104px;
   }
 
   .scene {
