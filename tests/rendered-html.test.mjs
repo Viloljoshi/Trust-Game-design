@@ -61,6 +61,8 @@ test("keeps Trust Lab product files free of starter preview imports", async () =
   assert.match(page, /Characters win/);
   assert.match(page, /Trust \{lastAction\.trustShift >= 0 \? "gained" : "lost"\}/);
   assert.match(page, /function scoreMove\(action: Action\)/);
+  assert.match(page, /const AUTO_ADVANCE_MS = 5_000/);
+  assert.match(page, /window\.setTimeout\([\s\S]*chooseChapter\(activeIndex \+ 1\)/);
   assert.match(page, /tone-\$\{tone\}\.mp3/);
   assert.doesNotMatch(page, /speechSynthesis|SpeechSynthesisUtterance|playNarration|Voice transcript/);
   assert.match(page, /The Feed Chooses/);

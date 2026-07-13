@@ -585,6 +585,8 @@ const initialMetrics: Metrics = {
   resilience: 54,
 };
 
+const AUTO_ADVANCE_MS = 5_000;
+
 const clamp = (value: number, min = 0, max = 100) =>
   Math.min(max, Math.max(min, value));
 
@@ -643,6 +645,7 @@ export default function Home() {
     ai: 62,
   });
   const sfxRef = useRef<HTMLAudioElement | null>(null);
+  const autoAdvanceRef = useRef<number | null>(null);
 
   const chapter = chapters[activeIndex];
   const activeCharacters = chapter.characters.map((name) => characters[name]);
@@ -667,8 +670,18 @@ export default function Home() {
   useEffect(() => {
     return () => {
       sfxRef.current?.pause();
+      if (autoAdvanceRef.current !== null) {
+        window.clearTimeout(autoAdvanceRef.current);
+      }
     };
   }, []);
+
+  function clearAutoAdvance() {
+    if (autoAdvanceRef.current === null) return;
+
+    window.clearTimeout(autoAdvanceRef.current);
+    autoAdvanceRef.current = null;
+  }
 
   function playTone(tone: Action["tone"], force = false) {
     if ((!audioUnlocked || !effectsOn) && !force) return;
@@ -697,6 +710,7 @@ export default function Home() {
   }
 
   function chooseChapter(index: number) {
+    clearAutoAdvance();
     const next = chapters[index];
     setActiveIndex(index);
     setLastAction(next.actions[0]);
@@ -707,6 +721,7 @@ export default function Home() {
   }
 
   function applyAction(action: Action) {
+    clearAutoAdvance();
     const score = scoreMove(action);
     setLastAction(action);
     setHasChosen(true);
@@ -719,9 +734,17 @@ export default function Home() {
     setRound((value) => value + 1);
     setPulse((value) => value + 1);
     playTone(action.tone);
+
+    if (activeIndex < chapters.length - 1) {
+      autoAdvanceRef.current = window.setTimeout(
+        () => chooseChapter(activeIndex + 1),
+        AUTO_ADVANCE_MS,
+      );
+    }
   }
 
   function resetLab() {
+    clearAutoAdvance();
     setActiveIndex(0);
     setMetrics(initialMetrics);
     setTrust(46);
