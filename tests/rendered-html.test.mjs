@@ -33,10 +33,10 @@ test("server-renders Trust Lab", async () => {
 
   const html = await response.text();
   assert.match(html, /<title>Trust Lab<\/title>/i);
-  assert.match(html, /TRUST LAB/);
-  assert.match(html, /Would You Trust Me\?/);
-  assert.match(html, /The AI Coworker/);
-  assert.match(html, /Trust calibration/);
+  assert.match(html, /Trust Lab/i);
+  assert.match(html, /Learn how trust works by making choices/i);
+  assert.match(html, /Read the situation/i);
+  assert.match(html, /Start lesson 1/i);
   assert.doesNotMatch(html, developmentPreviewMeta);
   assert.doesNotMatch(html, /react-loading-skeleton|Your site is taking shape|Codex is building/i);
 });
@@ -49,7 +49,10 @@ test("keeps Trust Lab product files free of starter preview imports", async () =
     readFile(new URL("../package.json", import.meta.url), "utf8"),
   ]);
 
-  assert.match(page, /Start game audio/);
+  assert.match(page, /Start lesson 1/);
+  assert.match(page, /Lesson \{activeIndex \+ 1\} of \{chapters\.length\}/);
+  assert.match(page, /See your learning progress/);
+  assert.match(page, /Next lesson/);
   assert.match(page, /tone-\$\{tone\}\.mp3/);
   assert.doesNotMatch(page, /speechSynthesis|SpeechSynthesisUtterance|playNarration|Voice transcript/);
   assert.match(page, /The Feed Chooses/);

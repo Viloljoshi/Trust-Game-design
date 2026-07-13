@@ -66,13 +66,138 @@ button {
   padding: 28px clamp(16px, 3vw, 42px) 36px;
 }
 
+.welcome-page {
+  align-items: center;
+  display: flex;
+  min-height: 100vh;
+  padding: 32px 18px;
+}
+
+.welcome {
+  margin: 0 auto;
+  max-width: 760px;
+  width: 100%;
+}
+
+.welcome-mark {
+  align-items: center;
+  background: #ffffff;
+  border: 3px solid var(--line);
+  border-radius: 50%;
+  display: flex;
+  height: 64px;
+  justify-content: center;
+  margin-bottom: 24px;
+  width: 64px;
+}
+
+.welcome-mark span {
+  background: var(--line);
+  border-radius: 50%;
+  height: 7px;
+  margin: 4px;
+  width: 7px;
+}
+
+.welcome h1 {
+  font-size: clamp(2.4rem, 7vw, 5.4rem);
+  line-height: 0.96;
+  max-width: 720px;
+}
+
+.welcome-copy {
+  color: var(--muted);
+  font-size: 1.15rem;
+  line-height: 1.55;
+  margin: 24px 0 30px;
+  max-width: 650px;
+}
+
+.welcome-steps {
+  border-bottom: 2px solid rgba(57, 53, 48, 0.2);
+  border-top: 2px solid rgba(57, 53, 48, 0.2);
+  display: grid;
+  gap: 0;
+  grid-template-columns: repeat(3, 1fr);
+  margin-bottom: 28px;
+}
+
+.welcome-steps article {
+  display: flex;
+  gap: 12px;
+  padding: 20px 18px 20px 0;
+}
+
+.welcome-steps article + article {
+  border-left: 2px solid rgba(57, 53, 48, 0.16);
+  padding-left: 18px;
+}
+
+.welcome-steps article > span {
+  align-items: center;
+  background: #dff8f1;
+  border: 2px solid var(--line);
+  border-radius: 50%;
+  display: flex;
+  flex: 0 0 auto;
+  font-size: 0.8rem;
+  font-weight: 900;
+  height: 30px;
+  justify-content: center;
+  width: 30px;
+}
+
+.welcome-steps strong {
+  display: block;
+  font-size: 0.9rem;
+  margin: 2px 0 6px;
+}
+
+.welcome-steps p {
+  color: var(--muted);
+  font-size: 0.78rem;
+  line-height: 1.45;
+  margin: 0;
+}
+
+.welcome-start {
+  align-items: center;
+  appearance: none;
+  background: var(--foreground);
+  border: 2px solid var(--foreground);
+  border-radius: 8px;
+  box-shadow: 5px 6px 0 rgba(35, 184, 169, 0.45);
+  color: #ffffff;
+  display: inline-flex;
+  font-weight: 900;
+  gap: 24px;
+  min-height: 54px;
+  padding: 12px 18px;
+}
+
+.welcome-start:hover {
+  box-shadow: 2px 3px 0 rgba(35, 184, 169, 0.55);
+  transform: translateY(2px);
+}
+
+.welcome-note {
+  color: var(--muted);
+  font-size: 0.78rem;
+  margin: 18px 0 0;
+}
+
 .lab-header {
   align-items: center;
   display: flex;
   gap: 18px;
   justify-content: space-between;
   margin: 0 auto 18px;
-  max-width: 1440px;
+  max-width: 1100px;
+}
+
+.lab-header h1 {
+  font-size: 2rem;
+  line-height: 1;
 }
 
 .eyebrow {
@@ -110,6 +235,67 @@ h2 {
   flex-wrap: wrap;
   gap: 8px;
   justify-content: flex-end;
+}
+
+.chapter-guide {
+  align-items: center;
+  display: grid;
+  gap: 14px;
+  grid-template-columns: 44px 1fr 44px;
+  margin: 0 auto 16px;
+  max-width: 1100px;
+}
+
+.guide-arrow {
+  align-items: center;
+  appearance: none;
+  background: #ffffff;
+  border: 2px solid var(--line);
+  border-radius: 50%;
+  color: var(--foreground);
+  display: flex;
+  font-size: 1.15rem;
+  height: 44px;
+  justify-content: center;
+  width: 44px;
+}
+
+.guide-arrow:disabled {
+  cursor: default;
+  opacity: 0.3;
+}
+
+.guide-progress > div:first-child {
+  align-items: baseline;
+  display: flex;
+  gap: 12px;
+  justify-content: space-between;
+  margin-bottom: 8px;
+}
+
+.guide-progress span {
+  color: var(--muted);
+  font-size: 0.76rem;
+  font-weight: 800;
+}
+
+.guide-progress strong {
+  font-size: 0.94rem;
+}
+
+.guide-track {
+  background: rgba(216, 212, 204, 0.72);
+  border: 2px solid var(--line);
+  border-radius: 999px;
+  height: 12px;
+  overflow: hidden;
+}
+
+.guide-track span {
+  background: var(--teal);
+  display: block;
+  height: 100%;
+  transition: width 320ms ease;
 }
 
 .audio-console {
@@ -309,9 +495,12 @@ input:focus-visible {
 .game-shell {
   display: grid;
   gap: 16px;
-  grid-template-columns: minmax(220px, 0.78fr) minmax(420px, 1.5fr) minmax(260px, 0.9fr);
+  grid-template-areas:
+    "story canvas"
+    "decision decision";
+  grid-template-columns: minmax(250px, 0.7fr) minmax(480px, 1.3fr);
   margin: 0 auto;
-  max-width: 1440px;
+  max-width: 1100px;
 }
 
 .story-panel,
@@ -330,7 +519,8 @@ input:focus-visible {
 }
 
 .story-panel {
-  min-height: 610px;
+  grid-area: story;
+  min-height: 560px;
   padding: clamp(18px, 2.4vw, 28px);
   position: relative;
 }
@@ -398,7 +588,8 @@ input:focus-visible {
     linear-gradient(90deg, rgba(41, 39, 37, 0.05) 1px, transparent 1px),
     #fffef9;
   background-size: 34px 34px;
-  min-height: 610px;
+  grid-area: canvas;
+  min-height: 560px;
   overflow: hidden;
   padding: 18px;
   position: relative;
@@ -1144,7 +1335,8 @@ input:focus-visible {
 }
 
 .decision-panel {
-  min-height: 610px;
+  grid-area: decision;
+  min-height: auto;
   padding: clamp(16px, 2vw, 24px);
 }
 
@@ -1167,6 +1359,7 @@ input:focus-visible {
 .action-grid {
   display: grid;
   gap: 9px;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
 }
 
 .action-button {
@@ -1228,14 +1421,110 @@ input:focus-visible {
   padding: 14px;
 }
 
-.outcome p {
-  font-weight: 800;
-  margin-bottom: 8px;
+.outcome > strong {
+  display: block;
+  line-height: 1.45;
+  margin-bottom: 10px;
 }
 
 .outcome span {
   color: var(--muted);
   display: block;
+}
+
+.outcome span b {
+  color: var(--foreground);
+}
+
+.choice-hint,
+.story-hint {
+  color: var(--muted);
+  font-size: 0.9rem;
+  line-height: 1.5;
+  margin: 18px 0 0;
+}
+
+.story-hint {
+  border-left: 4px solid var(--gold);
+  padding-left: 12px;
+}
+
+.next-lesson {
+  align-items: center;
+  appearance: none;
+  background: var(--foreground);
+  border: 2px solid var(--foreground);
+  border-radius: 8px;
+  color: #ffffff;
+  display: inline-flex;
+  font-weight: 900;
+  gap: 16px;
+  margin-top: 16px;
+  min-height: 44px;
+  padding: 8px 14px;
+}
+
+.next-lesson i {
+  font-style: normal;
+}
+
+.learning-drawer {
+  background: rgba(255, 255, 255, 0.72);
+  border: 2px solid rgba(57, 53, 48, 0.72);
+  border-radius: 8px;
+  margin: 14px auto 0;
+  max-width: 1100px;
+  overflow: hidden;
+}
+
+.learning-drawer summary {
+  align-items: center;
+  cursor: pointer;
+  display: flex;
+  justify-content: space-between;
+  list-style: none;
+  padding: 15px 17px;
+}
+
+.learning-drawer summary::-webkit-details-marker {
+  display: none;
+}
+
+.learning-drawer summary::after {
+  content: "+";
+  font-size: 1.35rem;
+  font-weight: 900;
+  margin-left: 18px;
+}
+
+.learning-drawer[open] summary::after {
+  content: "−";
+}
+
+.learning-drawer summary span,
+.learning-drawer summary small {
+  display: block;
+}
+
+.learning-drawer summary span {
+  font-size: 0.9rem;
+  font-weight: 900;
+}
+
+.learning-drawer summary small {
+  color: var(--muted);
+  font-size: 0.72rem;
+  margin-left: auto;
+}
+
+.learning-drawer .metrics-band,
+.learning-drawer .research-strip {
+  border: 0;
+  border-top: 2px solid rgba(57, 53, 48, 0.14);
+  border-radius: 0;
+  box-shadow: none;
+  margin: 0;
+  max-width: none;
 }
 
 .metrics-band {
@@ -1435,6 +1724,10 @@ input:focus-visible {
   }
 
   .game-shell {
+    grid-template-areas:
+      "story"
+      "canvas"
+      "decision";
     grid-template-columns: 1fr;
   }
 
@@ -1454,6 +1747,34 @@ input:focus-visible {
 }
 
 @media (max-width: 720px) {
+  .welcome-page {
+    align-items: flex-start;
+    padding: 28px 16px;
+  }
+
+  .welcome h1 {
+    font-size: 2.65rem;
+  }
+
+  .welcome-copy {
+    font-size: 1rem;
+    margin: 18px 0 22px;
+  }
+
+  .welcome-steps {
+    grid-template-columns: 1fr;
+  }
+
+  .welcome-steps article,
+  .welcome-steps article + article {
+    border-left: 0;
+    padding: 15px 0;
+  }
+
+  .welcome-steps article + article {
+    border-top: 1px solid rgba(57, 53, 48, 0.14);
+  }
+
   .trust-lab {
     padding: 18px 12px 28px;
   }
@@ -1466,6 +1787,22 @@ input:focus-visible {
   .header-actions {
     justify-content: flex-start;
     width: 100%;
+  }
+
+  .chapter-guide {
+    gap: 9px;
+    grid-template-columns: 40px 1fr 40px;
+  }
+
+  .guide-arrow {
+    height: 40px;
+    width: 40px;
+  }
+
+  .guide-progress > div:first-child {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 2px;
   }
 
   .audio-console {
@@ -1483,7 +1820,15 @@ input:focus-visible {
   }
 
   .icon-button {
-    flex: 1 1 92px;
+    flex: 1 1 110px;
+  }
+
+  .action-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .learning-drawer summary small {
+    display: none;
   }
 
   .chapter-rail {

@@ -616,16 +616,16 @@ function metricLabel(key: MetricKey) {
 }
 
 export default function Home() {
+  const [started, setStarted] = useState(false);
   const [activeIndex, setActiveIndex] = useState(0);
   const [metrics, setMetrics] = useState<Metrics>(initialMetrics);
   const [trust, setTrust] = useState(46);
   const [tokens, setTokens] = useState(6);
   const [round, setRound] = useState(1);
   const [lastAction, setLastAction] = useState<Action>(chapters[0].actions[0]);
+  const [hasChosen, setHasChosen] = useState(false);
   const [effectsOn, setEffectsOn] = useState(false);
-  const [ambientOn, setAmbientOn] = useState(false);
   const [audioUnlocked, setAudioUnlocked] = useState(false);
-  const [soundState, setSoundState] = useState<"off" | "ready" | "playing">("off");
   const [motionOff, setMotionOff] = useState(false);
   const [pulse, setPulse] = useState(0);
   const [sandbox, setSandbox] = useState({
@@ -634,7 +634,6 @@ export default function Home() {
     reputation: 58,
     ai: 62,
   });
-  const musicRef = useRef<HTMLAudioElement | null>(null);
   const sfxRef = useRef<HTMLAudioElement | null>(null);
 
   const chapter = chapters[activeIndex];
@@ -659,7 +658,6 @@ export default function Home() {
 
   useEffect(() => {
     return () => {
-      musicRef.current?.pause();
       sfxRef.current?.pause();
     };
   }, []);
@@ -670,83 +668,38 @@ export default function Home() {
     sfxRef.current?.pause();
     const audio = new Audio(`/audio/tone-${tone}.mp3`);
     audio.volume = 0.82;
-    audio.onplay = () => setSoundState("playing");
-    audio.onended = () => setSoundState("ready");
-    audio.onerror = () => setSoundState("ready");
     sfxRef.current = audio;
-    void audio.play().catch(() => setSoundState("ready"));
+    void audio.play().catch(() => undefined);
   }
 
-  async function startAmbient() {
-    if (musicRef.current) {
-      await musicRef.current.play();
-      setAmbientOn(true);
-      return;
-    }
-
-    const audio = new Audio("/audio/ambient.mp3");
-    audio.loop = true;
-    audio.volume = 0.28;
-    musicRef.current = audio;
-    await audio.play();
-    setAmbientOn(true);
-  }
-
-  function stopAmbient() {
-    musicRef.current?.pause();
-    setAmbientOn(false);
-  }
-
-  async function toggleAmbient() {
-    if (!audioUnlocked) {
-      await activateAudio(true);
-      return;
-    }
-
-    if (ambientOn) {
-      stopAmbient();
-      return;
-    }
-
-    try {
-      await startAmbient();
-      playTone("soft");
-    } catch {
-      setAmbientOn(false);
-    }
-  }
-
-  async function activateAudio(includeAmbient = true) {
+  function activateAudio() {
     setAudioUnlocked(true);
     setEffectsOn(true);
-    setSoundState("ready");
     playTone("bright", true);
-    if (includeAmbient) {
-      void startAmbient().catch(() => setAmbientOn(false));
-    }
   }
 
   function toggleEffects() {
     if (!effectsOn) {
-      void activateAudio(false);
+      activateAudio();
       return;
     }
 
     sfxRef.current?.pause();
     setEffectsOn(false);
-    setSoundState("off");
   }
 
   function chooseChapter(index: number) {
     const next = chapters[index];
     setActiveIndex(index);
     setLastAction(next.actions[0]);
+    setHasChosen(false);
     setPulse((value) => value + 1);
     playTone("soft");
   }
 
   function applyAction(action: Action) {
     setLastAction(action);
+    setHasChosen(true);
     setTrust((value) => clamp(value + action.trustShift));
     setTokens((value) => Math.max(0, value + action.tokens));
     setMetrics((value) => updateMetrics(value, action.deltas));
@@ -762,9 +715,73 @@ export default function Home() {
     setTokens(6);
     setRound(1);
     setLastAction(chapters[0].actions[0]);
+    setHasChosen(false);
     setSandbox({ future: 68, error: 16, reputation: 58, ai: 62 });
     setPulse((value) => value + 1);
     playTone("bright");
+  }
+
+  function startGame() {
+    setStarted(true);
+    activateAudio();
+  }
+
+  function goToNextLesson() {
+    if (activeIndex === chapters.length - 1) {
+      resetLab();
+      return;
+    }
+
+    chooseChapter(activeIndex + 1);
+  }
+
+  if (!started) {
+    return (
+      <main className="welcome-page">
+        <section className="welcome" aria-labelledby="welcome-title">
+          <div className="welcome-mark" aria-hidden="true">
+            <span />
+            <span />
+          </div>
+          <p className="eyebrow">Trust Lab</p>
+          <h1 id="welcome-title">Learn how trust works by making choices.</h1>
+          <p className="welcome-copy">
+            Play nine short situations about people, groups, platforms and AI. Each takes about a
+            minute.
+          </p>
+
+          <div className="welcome-steps" aria-label="How to play">
+            <article>
+              <span>1</span>
+              <div>
+                <strong>Read the situation</strong>
+                <p>Notice what you know and what is still uncertain.</p>
+              </div>
+            </article>
+            <article>
+              <span>2</span>
+              <div>
+                <strong>Choose your move</strong>
+                <p>Pick the response that feels most reasonable.</p>
+              </div>
+            </article>
+            <article>
+              <span>3</span>
+              <div>
+                <strong>See what changes</strong>
+                <p>Learn how your choice affects trust and cooperation.</p>
+              </div>
+            </article>
+          </div>
+
+          <button className="welcome-start" type="button" onClick={startGame}>
+            Start lesson 1
+            <span aria-hidden="true">→</span>
+          </button>
+          <p className="welcome-note">There are no personality scores and no perfect answers.</p>
+        </section>
+      </main>
+    );
   }
 
   return (
@@ -782,15 +799,7 @@ export default function Home() {
             aria-pressed={effectsOn}
             onClick={toggleEffects}
           >
-            {effectsOn ? "FX on" : "FX off"}
-          </button>
-          <button
-            className={ambientOn ? "icon-button active" : "icon-button"}
-            type="button"
-            aria-pressed={ambientOn}
-            onClick={toggleAmbient}
-          >
-            {ambientOn ? "Ambient on" : "Ambient off"}
+            {effectsOn ? "Sound on" : "Sound off"}
           </button>
           <button
             className={motionOff ? "icon-button active" : "icon-button"}
@@ -806,45 +815,34 @@ export default function Home() {
         </div>
       </header>
 
-      <section className={audioUnlocked ? "audio-console unlocked" : "audio-console"} aria-live="polite">
+      <nav className="chapter-guide" aria-label="Lesson navigation">
         <button
-          className="audio-start"
+          className="guide-arrow"
           type="button"
-          onClick={() => void activateAudio(true)}
+          aria-label="Previous lesson"
+          disabled={activeIndex === 0}
+          onClick={() => chooseChapter(activeIndex - 1)}
         >
-          <span className="audio-icon" aria-hidden="true">{audioUnlocked ? "♪" : "▶"}</span>
-          <span>
-            <strong>{audioUnlocked ? "Game sounds ready" : "Start game audio"}</strong>
-            <small>
-              {audioUnlocked
-                ? ambientOn
-                  ? "Animated effects and soft ambience are on"
-                  : "Animated effects are on"
-                : "Playful feedback sounds for every move"}
-            </small>
-          </span>
+          ←
         </button>
-        <div className={soundState === "playing" ? "sound-wave playing" : "sound-wave"} aria-hidden="true">
-          {Array.from({ length: 12 }).map((_, index) => <i key={index} />)}
+        <div className="guide-progress">
+          <div>
+            <span>Lesson {activeIndex + 1} of {chapters.length}</span>
+            <strong>{chapter.title}</strong>
+          </div>
+          <div className="guide-track" aria-hidden="true">
+            <span style={{ width: `${((activeIndex + 1) / chapters.length) * 100}%` }} />
+          </div>
         </div>
-        <span className="audio-status">
-          {soundState === "playing" ? "Boop!" : audioUnlocked ? "Audio ready" : "Waiting for your tap"}
-        </span>
-      </section>
-
-      <nav className="chapter-rail" aria-label="Trust Lab chapters">
-        {chapters.map((item, index) => (
-          <button
-            key={item.id}
-            className={index === activeIndex ? "chapter-dot active" : "chapter-dot"}
-            type="button"
-            aria-current={index === activeIndex ? "step" : undefined}
-            onClick={() => chooseChapter(index)}
-          >
-            <span>{item.number}</span>
-            {item.title}
-          </button>
-        ))}
+        <button
+          className="guide-arrow"
+          type="button"
+          aria-label="Next lesson"
+          disabled={activeIndex === chapters.length - 1}
+          onClick={() => chooseChapter(activeIndex + 1)}
+        >
+          →
+        </button>
       </nav>
 
       <section className="game-shell" aria-label={`${chapter.title} interactive scene`}>
@@ -852,13 +850,15 @@ export default function Home() {
           <div className="dot" aria-hidden="true">
             <span />
           </div>
-          <p className="chapter-number">{chapter.number}</p>
+          <p className="chapter-number">Situation</p>
           <h2>{chapter.title}</h2>
           <p className="scale">{chapter.scale}</p>
           <p className="prompt">{chapter.prompt}</p>
-          <p className="caption">
-            <strong>Dot:</strong> {lastAction.line}
-          </p>
+          {hasChosen ? (
+            <p className="caption"><strong>Your move:</strong> {lastAction.line}</p>
+          ) : (
+            <p className="story-hint">Take a moment. What would you do?</p>
+          )}
         </aside>
 
         <section className={`lab-canvas ${chapter.visual}`} data-pulse={pulse}>
@@ -885,7 +885,7 @@ export default function Home() {
 
         <aside className="decision-panel">
           <div className="decision-heading">
-            <p className="eyebrow">Choose</p>
+            <p className="eyebrow">Your move</p>
             <span>{tokens} tokens</span>
           </div>
 
@@ -893,7 +893,7 @@ export default function Home() {
             {chapter.actions.map((action) => (
               <button
                 key={action.id}
-                className={`action-button ${lastAction.id === action.id ? "selected" : ""}`}
+                className={`action-button ${hasChosen && lastAction.id === action.id ? "selected" : ""}`}
                 type="button"
                 onClick={() => applyAction(action)}
               >
@@ -928,41 +928,65 @@ export default function Home() {
             </div>
           )}
 
-          <div className="outcome" aria-live="polite">
-            <p>{lastAction.result}</p>
-            <span>{lastAction.lesson}</span>
-          </div>
+          {hasChosen ? (
+            <div className="outcome" aria-live="polite">
+              <p className="eyebrow">What happened</p>
+              <strong>{lastAction.result}</strong>
+              <span><b>What this teaches:</b> {lastAction.lesson}</span>
+              <button
+                className="next-lesson"
+                type="button"
+                aria-label={activeIndex === chapters.length - 1 ? "Restart game" : "Continue to next lesson"}
+                onClick={goToNextLesson}
+              >
+                {activeIndex === chapters.length - 1 ? "Play again" : "Next lesson"}
+                <i aria-hidden="true">→</i>
+              </button>
+            </div>
+          ) : (
+            <p className="choice-hint">Choose the response that feels most reasonable to you.</p>
+          )}
 
         </aside>
       </section>
 
-      <section className="metrics-band" aria-label="Trust Lab metrics">
-        {(Object.keys(metrics) as MetricKey[]).map((key) => (
-          <div key={key} className="metric">
-            <div>
-              <span>{metricLabel(key)}</span>
-              <strong>{metrics[key]}</strong>
+      <details className="learning-drawer">
+        <summary>
+          <span>See your learning progress</span>
+          <small>Trust, cooperation and system effects</small>
+        </summary>
+        <section className="metrics-band" aria-label="Trust Lab metrics">
+          {(Object.keys(metrics) as MetricKey[]).map((key) => (
+            <div key={key} className="metric">
+              <div>
+                <span>{metricLabel(key)}</span>
+                <strong>{metrics[key]}</strong>
+              </div>
+              <div className="metric-track"><span style={{ width: `${metrics[key]}%` }} /></div>
             </div>
-            <div className="metric-track">
-              <span style={{ width: `${metrics[key]}%` }} />
-            </div>
-          </div>
-        ))}
-      </section>
+          ))}
+        </section>
+      </details>
 
-      <section className="research-strip">
-        <div>
-          <p className="eyebrow">Research behind this scene</p>
-          <p>{chapter.research}</p>
-        </div>
-        <div>
-          <p className="eyebrow">Current calibration note</p>
-          <p>
-            You are balancing prevented exploitation against missed cooperation. The game reports
-            trade-offs, not personality labels.
-          </p>
-        </div>
-      </section>
+      <details className="learning-drawer">
+        <summary>
+          <span>Why this lesson matters</span>
+          <small>Research and the key trade-off</small>
+        </summary>
+        <section className="research-strip">
+          <div>
+            <p className="eyebrow">Research behind this scene</p>
+            <p>{chapter.research}</p>
+          </div>
+          <div>
+            <p className="eyebrow">Keep in mind</p>
+            <p>
+              You are balancing prevented exploitation against missed cooperation. The game reports
+              trade-offs, not personality labels.
+            </p>
+          </div>
+        </section>
+      </details>
 
     </main>
   );
