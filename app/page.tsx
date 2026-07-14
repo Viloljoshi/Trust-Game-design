@@ -51,6 +51,8 @@ type RoundScore = {
   verdict: "win" | "draw" | "loss";
 };
 
+type Strategy = "cooperate" | "cheat";
+
 const characters: Record<string, Character> = {
   Scout: {
     name: "Scout",
@@ -305,15 +307,15 @@ const chapters: Chapter[] = [
       },
       {
         id: "punish",
-        label: "Punish low contributors",
-        short: "Punish",
-        line: "Gavel stamps a consequence and pays a cost too.",
-        result: "Free riding falls, but someone with fewer tokens is punished unfairly.",
-        lesson: "Punishment only works when it is fair and accurate.",
+        label: "Keep your tokens",
+        short: "Keep",
+        line: "You keep your tokens and wait for everyone else to fill the pot.",
+        result: "You keep your tokens but still take the shared reward.",
+        lesson: "A free ride pays once. If many people copy it, the shared pot collapses.",
         tone: "alert",
-        trustShift: -2,
-        tokens: -1,
-        deltas: { cooperation: 3, calibration: -1, resilience: -1 },
+        trustShift: -8,
+        tokens: 4,
+        deltas: { cooperation: -8, calibration: -2, resilience: -4 },
       },
       {
         id: "appeal",
@@ -342,15 +344,15 @@ const chapters: Chapter[] = [
     actions: [
       {
         id: "trust-stars",
-        label: "Trust the highest rating",
-        short: "Stars",
-        line: "Five stars feels clear until the sample size appears.",
-        result: "The five-star score came from copied reviews.",
-        lesson: "A high rating is not enough. Check who made the reviews.",
+        label: "Boost the rating",
+        short: "Boost",
+        line: "You add fake praise to make the score look safer.",
+        result: "Your rating jumps, but buyers discover the copied reviews.",
+        lesson: "A fake signal can win attention once. Discovery makes later trust much harder.",
         tone: "alert",
-        trustShift: -7,
-        tokens: -2,
-        deltas: { calibration: -5, integrity: -6, resilience: -3 },
+        trustShift: -9,
+        tokens: 4,
+        deltas: { calibration: -5, integrity: -9, resilience: -4 },
       },
       {
         id: "inspect-reviews",
@@ -440,11 +442,11 @@ const chapters: Chapter[] = [
     actions: [
       {
         id: "accept-oracle",
-        label: "Accept Oracle",
-        short: "Accept",
-        line: "The answer is immediate, fluent and very sure.",
-        result: "Oracle sounds sure, but misses this unusual case.",
-        lesson: "Confidence does not always mean the answer is correct.",
+        label: "Skip the safety check",
+        short: "Skip",
+        line: "You use the fast answer without checking the unusual case.",
+        result: "Oracle sounds sure, but the unchecked answer is wrong.",
+        lesson: "Speed saves effort now. One confident error can cost trust later.",
         tone: "alert",
         trustShift: -8,
         tokens: 2,
@@ -489,15 +491,15 @@ const chapters: Chapter[] = [
     actions: [
       {
         id: "monitor-more",
-        label: "Increase monitoring",
-        short: "Monitor",
-        line: "Cheating becomes easier to detect. Privacy drops.",
-        result: "Cheating drops, but everyone loses some privacy.",
-        lesson: "More monitoring can help and also create a new cost.",
-        tone: "low",
-        trustShift: 3,
-        tokens: -1,
-        deltas: { integrity: 5, resilience: 1, calibration: 1 },
+        label: "Use a loophole",
+        short: "Loophole",
+        line: "You take the reward before the rules can stop you.",
+        result: "You gain points. Everyone else now expects the loophole to be used again.",
+        lesson: "An unfair rule invites more cheating until the system repairs it.",
+        tone: "alert",
+        trustShift: -10,
+        tokens: 4,
+        deltas: { integrity: -8, resilience: -6, cooperation: -5 },
       },
       {
         id: "appeals-audits",
@@ -550,31 +552,87 @@ const chapters: Chapter[] = [
       },
       {
         id: "shock",
-        label: "Add a mistake shock",
-        short: "Shock",
-        line: "A noisy event hits the system.",
-        result: "A mistake hits. Flexible rules recover; strict rules break.",
-        lesson: "A strong system can recover from normal mistakes.",
+        label: "Run a cheating world",
+        short: "Cheating world",
+        line: "Every agent looks for the fastest way to take without giving.",
+        result: "Points rise early. Then cooperation and shared rewards fall.",
+        lesson: "Cheating spreads when it pays and nobody can repair the rules.",
         tone: "alert",
         trustShift: -6,
-        tokens: -1,
-        deltas: { calibration: 3, resilience: -2, repair: 4 },
+        tokens: 3,
+        deltas: { cooperation: -7, resilience: -5, integrity: -3 },
       },
       {
         id: "compare",
-        label: "Compare rules",
-        short: "Compare",
-        line: "Two worlds run side by side.",
-        result: "Strict rules stop more harm. Repair rules keep more cooperation.",
-        lesson: "The best rule depends on which risk matters most.",
+        label: "Run a fair world",
+        short: "Fair world",
+        line: "Agents start small, share evidence and repair honest mistakes.",
+        result: "Cooperation grows slowly, then creates larger shared rewards.",
+        lesson: "Trust lasts when cooperation is rewarded and cheating has a fair cost.",
         tone: "soft",
-        trustShift: 3,
-        tokens: 0,
-        deltas: { calibration: 7, resilience: 6, integrity: 3 },
+        trustShift: 7,
+        tokens: 2,
+        deltas: { calibration: 7, cooperation: 6, resilience: 6, integrity: 3 },
       },
     ],
   },
 ];
+
+const strategyActionIds: Record<string, Record<Strategy, string>> = {
+  prologue: { cooperate: "small-trust", cheat: "keep-token" },
+  exchange: { cooperate: "cooperate", cheat: "defect" },
+  mistake: { cooperate: "verify", cheat: "retaliate" },
+  group: { cooperate: "public-contribute", cheat: "punish" },
+  reputation: { cooperate: "inspect-reviews", cheat: "trust-stars" },
+  feed: { cooperate: "trace-source", cheat: "share-now" },
+  ai: { cooperate: "ask-uncertainty", cheat: "accept-oracle" },
+  rules: { cooperate: "appeals-audits", cheat: "monitor-more" },
+  sandbox: { cooperate: "compare", cheat: "shock" },
+};
+
+const strategyMoveCopy: Record<
+  string,
+  Record<Strategy, { label: string; hint: string }>
+> = {
+  prologue: {
+    cooperate: { label: "Give", hint: "Send one token" },
+    cheat: { label: "Keep", hint: "Keep your token" },
+  },
+  exchange: {
+    cooperate: { label: "Return help", hint: "Share the reward" },
+    cheat: { label: "Take reward", hint: "Keep the bigger prize" },
+  },
+  mistake: {
+    cooperate: { label: "Check first", hint: "Look at the log" },
+    cheat: { label: "Blame now", hint: "Take Patch's tokens" },
+  },
+  group: {
+    cooperate: { label: "Add to pot", hint: "Help the group" },
+    cheat: { label: "Keep tokens", hint: "Use the shared reward" },
+  },
+  reputation: {
+    cooperate: { label: "Check reviews", hint: "Find real buyers" },
+    cheat: { label: "Fake rating", hint: "Boost your score" },
+  },
+  feed: {
+    cooperate: { label: "Check source", hint: "Verify before sharing" },
+    cheat: { label: "Share now", hint: "Take the attention" },
+  },
+  ai: {
+    cooperate: { label: "Ask uncertainty", hint: "Check the hard case" },
+    cheat: { label: "Skip check", hint: "Use the fast answer" },
+  },
+  rules: {
+    cooperate: { label: "Build appeals", hint: "Make decisions fair" },
+    cheat: { label: "Use loophole", hint: "Take the easy gain" },
+  },
+  sandbox: {
+    cooperate: { label: "Fair world", hint: "Test cooperative rules" },
+    cheat: { label: "Cheating world", hint: "Stress every weakness" },
+  },
+};
+
+const strategyOrder: Strategy[] = ["cooperate", "cheat"];
 
 const initialMetrics: Metrics = {
   calibration: 58,
@@ -631,6 +689,9 @@ export default function Home() {
   const [youScore, setYouScore] = useState(0);
   const [characterScore, setCharacterScore] = useState(0);
   const [roundScore, setRoundScore] = useState<RoundScore | null>(null);
+  const [lastStrategy, setLastStrategy] = useState<Strategy | null>(null);
+  const [strategyHistory, setStrategyHistory] = useState<Strategy[]>([]);
+  const [showFinalReport, setShowFinalReport] = useState(false);
   const [round, setRound] = useState(1);
   const [lastAction, setLastAction] = useState<Action>(chapters[0].actions[0]);
   const [hasChosen, setHasChosen] = useState(false);
@@ -649,6 +710,15 @@ export default function Home() {
 
   const chapter = chapters[activeIndex];
   const activeCharacters = chapter.characters.map((name) => characters[name]);
+  const strategyMoves = strategyOrder.map((strategy) => {
+    const action = chapter.actions.find(
+      (candidate) => candidate.id === strategyActionIds[chapter.id][strategy],
+    );
+
+    if (!action) throw new Error(`Missing ${strategy} action for ${chapter.id}`);
+    return { strategy, action, copy: strategyMoveCopy[chapter.id][strategy] };
+  });
+  const lastMoveCopy = lastStrategy ? strategyMoveCopy[chapter.id][lastStrategy] : null;
 
   const sandboxScores = useMemo(() => {
     const cooperation = clamp(
@@ -683,6 +753,16 @@ export default function Home() {
     autoAdvanceRef.current = null;
   }
 
+  function scrollToTop() {
+    window.requestAnimationFrame(() => window.scrollTo({ top: 0, behavior: "auto" }));
+  }
+
+  function openFinalReport() {
+    clearAutoAdvance();
+    setShowFinalReport(true);
+    scrollToTop();
+  }
+
   function playTone(tone: Action["tone"], force = false) {
     if ((!audioUnlocked || !effectsOn) && !force) return;
 
@@ -714,16 +794,20 @@ export default function Home() {
     const next = chapters[index];
     setActiveIndex(index);
     setLastAction(next.actions[0]);
+    setLastStrategy(null);
     setHasChosen(false);
     setRoundScore(null);
     setPulse((value) => value + 1);
     playTone("soft");
+    scrollToTop();
   }
 
-  function applyAction(action: Action) {
+  function applyAction(action: Action, strategy: Strategy) {
     clearAutoAdvance();
     const score = scoreMove(action);
     setLastAction(action);
+    setLastStrategy(strategy);
+    setStrategyHistory((value) => [...value, strategy]);
     setHasChosen(true);
     setRoundScore(score);
     setYouScore((value) => value + score.you);
@@ -735,12 +819,17 @@ export default function Home() {
     setPulse((value) => value + 1);
     playTone(action.tone);
 
-    if (activeIndex < chapters.length - 1) {
-      autoAdvanceRef.current = window.setTimeout(
-        () => chooseChapter(activeIndex + 1),
-        AUTO_ADVANCE_MS,
-      );
-    }
+    autoAdvanceRef.current = window.setTimeout(
+      () => {
+        if (activeIndex === chapters.length - 1) {
+          openFinalReport();
+          return;
+        }
+
+        chooseChapter(activeIndex + 1);
+      },
+      AUTO_ADVANCE_MS,
+    );
   }
 
   function resetLab() {
@@ -752,12 +841,16 @@ export default function Home() {
     setYouScore(0);
     setCharacterScore(0);
     setRoundScore(null);
+    setLastStrategy(null);
+    setStrategyHistory([]);
+    setShowFinalReport(false);
     setRound(1);
     setLastAction(chapters[0].actions[0]);
     setHasChosen(false);
     setSandbox({ future: 68, error: 16, reputation: 58, ai: 62 });
     setPulse((value) => value + 1);
     playTone("bright");
+    scrollToTop();
   }
 
   function startGame() {
@@ -767,12 +860,29 @@ export default function Home() {
 
   function goToNextLesson() {
     if (activeIndex === chapters.length - 1) {
-      resetLab();
+      openFinalReport();
       return;
     }
 
     chooseChapter(activeIndex + 1);
   }
+
+  const cooperateCount = strategyHistory.filter((move) => move === "cooperate").length;
+  const cheatCount = strategyHistory.length - cooperateCount;
+  const scoreResult =
+    youScore === characterScore ? "The score is tied" : youScore > characterScore ? "You won the points" : "The characters won the points";
+  const runPattern =
+    cooperateCount >= 7
+      ? "You usually cooperated"
+      : cheatCount >= 6
+        ? "You often chose the quick gain"
+        : "You mixed cooperation and cheating";
+  const runAdvice =
+    cooperateCount >= 7
+      ? "You built strong trust. Keep using small tests so cooperation does not become blind trust."
+      : cheatCount >= 6
+        ? "Quick gains raised your points, but they made future cooperation harder. Try cooperating when the risk is small and repeatable."
+        : "You protected yourself sometimes and cooperated sometimes. Look for evidence, then increase trust one small step at a time.";
 
   if (!started) {
     return (
@@ -818,6 +928,70 @@ export default function Home() {
             <span aria-hidden="true">→</span>
           </button>
           <p className="welcome-note">There are no personality scores and no perfect answers.</p>
+        </section>
+      </main>
+    );
+  }
+
+  if (showFinalReport) {
+    return (
+      <main className="final-page">
+        <section className="final-report" aria-labelledby="final-title">
+          <header className="final-heading">
+            <p className="eyebrow">Nine rounds complete</p>
+            <h1 id="final-title">{runPattern}</h1>
+            <p>
+              {scoreResult}. You finished with <strong>{trust}% trust</strong>.
+            </p>
+          </header>
+
+          <div className="final-score" aria-label={`Final score: You ${youScore}, Characters ${characterScore}`}>
+            <div><span>You</span><strong>{youScore}</strong></div>
+            <b>Final score</b>
+            <div><span>Characters</span><strong>{characterScore}</strong></div>
+          </div>
+
+          <div className="final-history" aria-label="Your nine moves">
+            {strategyHistory.map((strategy, index) => (
+              <div className={`final-move ${strategy}`} key={`${strategy}-${index}`}>
+                <span>{index + 1}</span>
+                <small>{strategyMoveCopy[chapters[index].id][strategy].label}</small>
+              </div>
+            ))}
+          </div>
+
+          <section className="final-explanation" aria-label="What your result means">
+            <article>
+              <span>Points</span>
+              <strong>{youScore} vs {characterScore}</strong>
+              <p>Points show what paid immediately.</p>
+            </article>
+            <article>
+              <span>Trust</span>
+              <strong>{trust}%</strong>
+              <p>Trust shows whether characters want to cooperate again.</p>
+            </article>
+            <article>
+              <span>Your choices</span>
+              <strong>{cooperateCount} trust-building · {cheatCount} quick-gain</strong>
+              <p>{runAdvice}</p>
+            </article>
+          </section>
+
+          <section className="final-metrics" aria-label="System effects after nine rounds">
+            {(Object.keys(metrics) as MetricKey[]).map((key) => (
+              <div key={key}>
+                <span>{metricLabel(key)}</span>
+                <div><i style={{ width: `${metrics[key]}%` }} /></div>
+                <strong>{metrics[key]}</strong>
+              </div>
+            ))}
+          </section>
+
+          <button className="welcome-start final-restart" type="button" onClick={resetLab}>
+            Play all 9 again
+            <span aria-hidden="true">↻</span>
+          </button>
         </section>
       </main>
     );
@@ -898,17 +1072,21 @@ export default function Home() {
               <strong>Your move</strong>
               <span>{tokens} tokens</span>
             </div>
-            <div className="action-grid">
-              {chapter.actions.map((action) => (
+            <div className="action-grid strategy-grid">
+              {strategyMoves.map(({ strategy, action, copy }) => (
                 <button
-                  key={action.id}
-                  className={`action-button ${hasChosen && lastAction.id === action.id ? "selected" : ""}`}
+                  key={strategy}
+                  className={`action-button strategy-button strategy-${strategy} ${hasChosen && lastStrategy === strategy ? "selected" : ""}`}
                   type="button"
-                  aria-label={action.label}
+                  aria-label={copy.label}
                   disabled={hasChosen}
-                  onClick={() => applyAction(action)}
+                  onClick={() => applyAction(action, strategy)}
                 >
-                  {action.short}
+                  <span className="move-symbol" aria-hidden="true">{strategy === "cooperate" ? "+" : "!"}</span>
+                  <span className="move-copy">
+                    <strong>{copy.label}</strong>
+                    <small>{copy.hint}</small>
+                  </span>
                 </button>
               ))}
             </div>
@@ -924,11 +1102,20 @@ export default function Home() {
           )}
         </aside>
 
-        <section className={`lab-canvas ${chapter.visual}`} data-pulse={pulse}>
+        <section
+          className={`lab-canvas ${chapter.visual} ${hasChosen && lastStrategy ? `reacting reaction-${lastStrategy}` : ""}`}
+          data-pulse={pulse}
+        >
           <div className="canvas-topline">
             <span>Round {round}</span>
             <span>{chapter.scale}</span>
           </div>
+
+          {hasChosen && lastMoveCopy && (
+            <div className={`move-flash ${lastStrategy}`} key={pulse} aria-hidden="true">
+              {lastMoveCopy.label}
+            </div>
+          )}
 
           <div
             className="scoreboard"
@@ -996,10 +1183,10 @@ export default function Home() {
               <button
                 className="next-lesson"
                 type="button"
-                aria-label={activeIndex === chapters.length - 1 ? "Restart game" : "Continue to next lesson"}
+                aria-label={activeIndex === chapters.length - 1 ? "See final result" : "Continue to next lesson"}
                 onClick={goToNextLesson}
               >
-                {activeIndex === chapters.length - 1 ? "Play again" : "Next lesson"}
+                {activeIndex === chapters.length - 1 ? "See final result" : "Next lesson"}
                 <i aria-hidden="true">→</i>
               </button>
             </div>
@@ -1054,6 +1241,12 @@ function CharacterFigure({ agent, index }: { agent: Character; index: number }) 
     <figure className={`agent ${agent.className}`} style={{ animationDelay: `${index * 120}ms` }}>
       <div className="character-shell">
         <span className="character-shadow" aria-hidden="true" />
+        <span className="reaction-sparks" aria-hidden="true">
+          <i />
+          <i />
+          <i />
+          <i />
+        </span>
         <div className="body">
           <span className="shine" aria-hidden="true" />
           <span className="brow left" aria-hidden="true" />

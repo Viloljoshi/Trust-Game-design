@@ -56,6 +56,12 @@ test("keeps Trust Lab product files free of starter preview imports", async () =
   assert.match(page, /See your learning progress/);
   assert.match(page, /Next lesson/);
   assert.match(page, /className="move-picker"/);
+  assert.match(page, /strategyMoves\.map/);
+  assert.doesNotMatch(page, /chapter\.actions\.map/);
+  assert.match(page, /label: "Give"/);
+  assert.match(page, /label: "Check first"/);
+  assert.match(page, /label: "Ask uncertainty"/);
+  assert.match(page, /label: "Build appeals"/);
   assert.match(page, /Score: You \$\{youScore\}, Characters \$\{characterScore\}/);
   assert.match(page, /You win/);
   assert.match(page, /Characters win/);
@@ -67,6 +73,9 @@ test("keeps Trust Lab product files free of starter preview imports", async () =
   assert.match(page, /function scoreMove\(action: Action\)/);
   assert.match(page, /const AUTO_ADVANCE_MS = 5_000/);
   assert.match(page, /window\.setTimeout\([\s\S]*chooseChapter\(activeIndex \+ 1\)/);
+  assert.match(page, /Nine rounds complete/);
+  assert.match(page, /Play all 9 again/);
+  assert.match(page, /openFinalReport/);
   assert.match(page, /tone-\$\{tone\}\.mp3/);
   assert.doesNotMatch(page, /speechSynthesis|SpeechSynthesisUtterance|playNarration|Voice transcript/);
   assert.match(page, /The Feed Chooses/);
@@ -74,6 +83,9 @@ test("keeps Trust Lab product files free of starter preview imports", async () =
   assert.match(page, /Sandbox/);
   assert.match(layout, /title:\s*"Trust Lab"/);
   assert.match(css, /scene-ai/);
+  assert.match(css, /characterCelebrateLeft/);
+  assert.match(css, /characterRecoil/);
+  assert.match(css, /trustBreak/);
   assert.match(css, /prefers-reduced-motion:\s*reduce/);
   assert.doesNotMatch(page + layout + css + packageJson, /_sites-preview|SkeletonPreview|react-loading-skeleton/);
 });
