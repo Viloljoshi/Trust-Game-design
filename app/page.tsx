@@ -62,6 +62,7 @@ type RoundScore = {
 };
 
 type Strategy = "cooperate" | "cheat";
+type OutcomeMood = "neutral" | "happy" | "sad" | "draw";
 
 const characters: Record<string, Character> = {
   Scout: {
@@ -151,7 +152,7 @@ const chapters: Chapter[] = [
     title: "Would You Trust Me?",
     scale: "one exchange",
     concept: "Baseline trust under incomplete information.",
-    prompt: "Give Scout a token and it becomes two.",
+    prompt: "Share with Scout. If Scout shares too, you both score.",
     characters: ["Scout", "Velvet"],
     research: "Prisoner's dilemma framing, betrayal aversion and baseline prediction.",
     sources: [
@@ -168,10 +169,10 @@ const chapters: Chapter[] = [
     actions: [
       {
         id: "small-trust",
-        label: "Give one token",
+        label: "Share one point",
         short: "Give",
         line: "Let's start small and see what happens.",
-        result: "Scout gives one too. Both of you get two tokens.",
+        result: "Scout shares too. You both score points.",
         lesson: "Start with a small risk. It gives you useful evidence.",
         tone: "bright",
         trustShift: 9,
@@ -180,7 +181,7 @@ const chapters: Chapter[] = [
       },
       {
         id: "keep-token",
-        label: "Keep your token",
+        label: "Keep your point",
         short: "Keep",
         line: "You protected yourself before you had evidence.",
         result: "Scout gives, but you keep yours. You score more now and trust drops.",
@@ -195,7 +196,7 @@ const chapters: Chapter[] = [
         label: "Ask first",
         short: "Ask",
         line: "What would make this feel safe enough to try?",
-        result: "Scout agrees to a one-token test before taking a bigger risk.",
+        result: "Scout agrees to a small test before taking a bigger risk.",
         lesson: "Clear limits make a first step feel safer.",
         tone: "soft",
         trustShift: 5,
@@ -328,7 +329,7 @@ const chapters: Chapter[] = [
     title: "The Shared Pot",
     scale: "public good",
     concept: "Visible norms can build cooperation or collapse it.",
-    prompt: "Everyone can add tokens to one shared pot.",
+    prompt: "Everyone can add points to one shared score.",
     characters: ["Echo", "Drift", "Scout"],
     research: "Conditional cooperation, free riding, costly punishment and fairness context.",
     sources: [
@@ -348,7 +349,7 @@ const chapters: Chapter[] = [
         label: "Make contributions public",
         short: "Public pot",
         line: "Echo looks around, sees others helping and steps closer.",
-        result: "More people add tokens when contributions are visible.",
+        result: "More people contribute when everyone's choice is visible.",
         lesson: "Seeing others help can make cooperation easier.",
         tone: "bright",
         trustShift: 6,
@@ -357,10 +358,10 @@ const chapters: Chapter[] = [
       },
       {
         id: "punish",
-        label: "Keep your tokens",
+        label: "Keep your points",
         short: "Keep",
-        line: "You keep your tokens and wait for everyone else to fill the pot.",
-        result: "You keep your tokens but still take the shared reward.",
+        line: "You keep your points and wait for everyone else to build the shared score.",
+        result: "You keep your points but still take the shared reward.",
         lesson: "A free ride pays once. If many people copy it, the shared pot collapses.",
         tone: "alert",
         trustShift: -8,
@@ -695,8 +696,8 @@ const strategyMoveCopy: Record<
   Record<Strategy, { label: string; hint: string }>
 > = {
   prologue: {
-    cooperate: { label: "Give", hint: "Send one token" },
-    cheat: { label: "Keep", hint: "Keep your token" },
+    cooperate: { label: "Share", hint: "Build points together" },
+    cheat: { label: "Keep", hint: "Score more right now" },
   },
   exchange: {
     cooperate: { label: "Return help", hint: "Share the reward" },
@@ -704,11 +705,11 @@ const strategyMoveCopy: Record<
   },
   mistake: {
     cooperate: { label: "Check first", hint: "Look at the log" },
-    cheat: { label: "Blame now", hint: "Take Patch's tokens" },
+    cheat: { label: "Blame now", hint: "Take the quick points" },
   },
   group: {
-    cooperate: { label: "Add to pot", hint: "Help the group" },
-    cheat: { label: "Keep tokens", hint: "Use the shared reward" },
+    cooperate: { label: "Build together", hint: "Raise the group score" },
+    cheat: { label: "Keep points", hint: "Use the shared reward" },
   },
   reputation: {
     cooperate: { label: "Check reviews", hint: "Find real buyers" },
@@ -748,6 +749,8 @@ const AUTO_ADVANCE_MS = 5_000;
 const clamp = (value: number, min = 0, max = 100) =>
   Math.min(max, Math.max(min, value));
 
+const pointWord = (value: number) => (Math.abs(value) === 1 ? "point" : "points");
+
 function updateMetrics(metrics: Metrics, deltas: Partial<Metrics>): Metrics {
   return {
     calibration: clamp(metrics.calibration + (deltas.calibration ?? 0)),
@@ -785,14 +788,12 @@ export default function Home() {
   const [activeIndex, setActiveIndex] = useState(0);
   const [metrics, setMetrics] = useState<Metrics>(initialMetrics);
   const [trust, setTrust] = useState(46);
-  const [tokens, setTokens] = useState(6);
   const [youScore, setYouScore] = useState(0);
   const [characterScore, setCharacterScore] = useState(0);
   const [roundScore, setRoundScore] = useState<RoundScore | null>(null);
   const [lastStrategy, setLastStrategy] = useState<Strategy | null>(null);
   const [strategyHistory, setStrategyHistory] = useState<Strategy[]>([]);
   const [showFinalReport, setShowFinalReport] = useState(false);
-  const [round, setRound] = useState(1);
   const [lastAction, setLastAction] = useState<Action>(chapters[0].actions[0]);
   const [hasChosen, setHasChosen] = useState(false);
   const [effectsOn, setEffectsOn] = useState(false);
@@ -819,6 +820,20 @@ export default function Home() {
     return { strategy, action, copy: strategyMoveCopy[chapter.id][strategy] };
   });
   const lastMoveCopy = lastStrategy ? strategyMoveCopy[chapter.id][lastStrategy] : null;
+  const playerMood: OutcomeMood = !roundScore
+    ? "neutral"
+    : roundScore.verdict === "win"
+      ? "happy"
+      : roundScore.verdict === "loss"
+        ? "sad"
+        : "draw";
+  const characterMood: OutcomeMood = !roundScore
+    ? "neutral"
+    : roundScore.verdict === "loss"
+      ? "happy"
+      : roundScore.verdict === "win"
+        ? "sad"
+        : "draw";
 
   const sandboxScores = useMemo(() => {
     const cooperation = clamp(
@@ -913,11 +928,9 @@ export default function Home() {
     setYouScore((value) => value + score.you);
     setCharacterScore((value) => value + score.characters);
     setTrust((value) => clamp(value + action.trustShift));
-    setTokens((value) => Math.max(0, value + action.tokens));
     setMetrics((value) => updateMetrics(value, action.deltas));
-    setRound((value) => value + 1);
     setPulse((value) => value + 1);
-    playTone(action.tone);
+    playTone(score.verdict === "win" ? "bright" : score.verdict === "loss" ? "alert" : "soft");
 
     autoAdvanceRef.current = window.setTimeout(
       () => {
@@ -937,14 +950,12 @@ export default function Home() {
     setActiveIndex(0);
     setMetrics(initialMetrics);
     setTrust(46);
-    setTokens(6);
     setYouScore(0);
     setCharacterScore(0);
     setRoundScore(null);
     setLastStrategy(null);
     setStrategyHistory([]);
     setShowFinalReport(false);
-    setRound(1);
     setLastAction(chapters[0].actions[0]);
     setHasChosen(false);
     setSandbox({ future: 68, error: 16, reputation: 58, ai: 62 });
@@ -1170,7 +1181,7 @@ export default function Home() {
           <div className="move-picker">
             <div className="move-heading">
               <strong>Your move</strong>
-              <span>{tokens} tokens</span>
+              <span>{youScore} {pointWord(youScore)}</span>
             </div>
             <div className="action-grid strategy-grid">
               {strategyMoves.map(({ strategy, action, copy }) => (
@@ -1203,11 +1214,11 @@ export default function Home() {
         </aside>
 
         <section
-          className={`lab-canvas ${chapter.visual} ${hasChosen && lastStrategy ? `reacting reaction-${lastStrategy}` : ""}`}
+          className={`lab-canvas ${chapter.visual} outcome-${roundScore?.verdict ?? "waiting"} ${hasChosen && lastStrategy ? `reacting reaction-${lastStrategy}` : ""}`}
           data-pulse={pulse}
         >
           <div className="canvas-topline">
-            <span>Round {round}</span>
+            <span>Round {activeIndex + 1}</span>
             <span>{chapter.scale}</span>
           </div>
 
@@ -1222,7 +1233,11 @@ export default function Home() {
             aria-label={`Score: You ${youScore}, Characters ${characterScore}`}
             aria-live="polite"
           >
-            <div className="score-side you-score"><span>You</span><strong>{youScore}</strong></div>
+            <div className={`score-side you-score mood-${playerMood}`}>
+              <i className="score-face" aria-hidden="true" />
+              <span>You</span>
+              <strong>{youScore}</strong>
+            </div>
             <div className={`round-verdict ${roundScore?.verdict ?? "waiting"}`}>
               <strong>
                 {!roundScore
@@ -1235,11 +1250,15 @@ export default function Home() {
               </strong>
               <span>
                 {roundScore
-                  ? `+${roundScore.you} : +${roundScore.characters}`
+                  ? `This round: +${roundScore.you} vs +${roundScore.characters}`
                   : "this round"}
               </span>
             </div>
-            <div className="score-side character-score"><span>Characters</span><strong>{characterScore}</strong></div>
+            <div className={`score-side character-score mood-${characterMood}`}>
+              <i className="score-face" aria-hidden="true" />
+              <span>Characters</span>
+              <strong>{characterScore}</strong>
+            </div>
           </div>
 
           <div className="relationship-wrap" aria-hidden="true">
@@ -1251,11 +1270,11 @@ export default function Home() {
 
           <div className="agent-row">
             {activeCharacters.map((agent, index) => (
-              <CharacterFigure key={agent.name} agent={agent} index={index} />
+              <CharacterFigure key={agent.name} agent={agent} index={index} mood={characterMood} />
             ))}
           </div>
 
-          <SceneVisual visual={chapter.visual} pulse={pulse} sandboxScores={sandboxScores} />
+          <SceneVisual visual={chapter.visual} pulse={pulse} roundScore={roundScore} sandboxScores={sandboxScores} />
         </section>
 
         {hasChosen && roundScore && (
@@ -1264,8 +1283,11 @@ export default function Home() {
               <div className="result-summary">
                 <p className="eyebrow">Round result</p>
                 <strong>
-                  {roundScore.verdict === "win" ? "You won" : roundScore.verdict === "loss" ? "You lost" : "It is a draw"}
+                  {roundScore.verdict === "win" ? "You won this round" : roundScore.verdict === "loss" ? "Characters won this round" : "This round is a draw"}
                 </strong>
+                <span className="round-point-gain">
+                  You +{roundScore.you} {pointWord(roundScore.you)} | Characters +{roundScore.characters} {pointWord(roundScore.characters)}
+                </span>
                 <span className={lastAction.trustShift >= 0 ? "trust-up" : "trust-down"}>
                   Trust {lastAction.trustShift >= 0 ? "gained" : "lost"} {Math.abs(lastAction.trustShift)}
                 </span>
@@ -1349,9 +1371,17 @@ export default function Home() {
   );
 }
 
-function CharacterFigure({ agent, index }: { agent: Character; index: number }) {
+function CharacterFigure({
+  agent,
+  index,
+  mood,
+}: {
+  agent: Character;
+  index: number;
+  mood: OutcomeMood;
+}) {
   return (
-    <figure className={`agent ${agent.className}`} style={{ animationDelay: `${index * 120}ms` }}>
+    <figure className={`agent ${agent.className} mood-${mood}`} style={{ animationDelay: `${index * 120}ms` }}>
       <div className="character-shell">
         <span className="character-shadow" aria-hidden="true" />
         <span className="reaction-sparks" aria-hidden="true">
@@ -1368,6 +1398,8 @@ function CharacterFigure({ agent, index }: { agent: Character; index: number }) 
           <span className="eye right" />
           <span className="cheek left" aria-hidden="true" />
           <span className="cheek right" aria-hidden="true" />
+          <span className="tear left" aria-hidden="true" />
+          <span className="tear right" aria-hidden="true" />
           <span className="mouth" />
         </div>
         <span className="prop">{agent.prop}</span>
@@ -1383,10 +1415,12 @@ function CharacterFigure({ agent, index }: { agent: Character; index: number }) 
 function SceneVisual({
   visual,
   pulse,
+  roundScore,
   sandboxScores,
 }: {
   visual: Chapter["visual"];
   pulse: number;
+  roundScore: RoundScore | null;
   sandboxScores: {
     cooperation: number;
     misinformation: number;
@@ -1489,12 +1523,22 @@ function SceneVisual({
 
   return (
     <div className="scene scene-exchange" key={pulse}>
-      <div className="machine">
-        <span>2x</span>
+      <div className={`points-stage ${roundScore ? `settled ${roundScore.verdict}` : "waiting"}`}>
+        <span className="points-stage-label">Round points</span>
+        <div className={`point-card player ${roundScore?.verdict === "win" ? "winner" : roundScore?.verdict === "loss" ? "loser" : ""}`}>
+          <small>You</small>
+          <strong>{roundScore ? `+${roundScore.you}` : "?"}</strong>
+        </div>
+        <span className="points-versus">vs</span>
+        <div className={`point-card characters ${roundScore?.verdict === "loss" ? "winner" : roundScore?.verdict === "win" ? "loser" : ""}`}>
+          <small>Them</small>
+          <strong>{roundScore ? `+${roundScore.characters}` : "?"}</strong>
+        </div>
+        <span className="point-confetti one" aria-hidden="true" />
+        <span className="point-confetti two" aria-hidden="true" />
+        <span className="point-confetti three" aria-hidden="true" />
+        <span className="point-confetti four" aria-hidden="true" />
       </div>
-      <div className="token token-a" />
-      <div className="token token-b" />
-      <div className="token token-c" />
     </div>
   );
 }

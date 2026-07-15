@@ -826,48 +826,111 @@ input:focus-visible {
   animation: resultPop 620ms cubic-bezier(0.2, 1.35, 0.4, 1) both;
 }
 
-.lab-canvas.reaction-cooperate .agent:nth-child(odd) .character-shell {
-  animation: characterCelebrateLeft 920ms cubic-bezier(0.2, 1.4, 0.35, 1) both;
+.agent.mood-happy {
+  animation: characterVictory 1100ms cubic-bezier(0.2, 1.45, 0.35, 1) both;
 }
 
-.lab-canvas.reaction-cooperate .agent:nth-child(even) .character-shell {
-  animation: characterCelebrateRight 920ms 80ms cubic-bezier(0.2, 1.4, 0.35, 1) both;
+.agent.mood-happy:nth-child(even) {
+  animation-name: characterVictoryAlt;
 }
 
-.lab-canvas.reaction-cooperate .reaction-sparks i {
+.agent.mood-happy .reaction-sparks i {
   animation: sparkBurst 780ms ease-out both;
 }
 
-.lab-canvas.reaction-cooperate .reaction-sparks i:nth-child(2) { animation-delay: 70ms; }
-.lab-canvas.reaction-cooperate .reaction-sparks i:nth-child(3) { animation-delay: 130ms; }
-.lab-canvas.reaction-cooperate .reaction-sparks i:nth-child(4) { animation-delay: 190ms; }
+.agent.mood-happy .reaction-sparks i:nth-child(2) { animation-delay: 70ms; }
+.agent.mood-happy .reaction-sparks i:nth-child(3) { animation-delay: 130ms; }
+.agent.mood-happy .reaction-sparks i:nth-child(4) { animation-delay: 190ms; }
 
-.lab-canvas.reaction-cooperate .relationship-line {
-  animation: trustSurge 900ms ease-out both;
+.agent.mood-happy .eye {
+  background: transparent;
+  border-bottom: 3px solid var(--line);
+  border-radius: 0 0 999px 999px;
+  height: 8px;
+  top: 40px;
+  width: 12px;
 }
 
-.lab-canvas.reaction-cheat .character-shell {
-  animation: characterRecoil 760ms cubic-bezier(0.36, 0.07, 0.19, 0.97) both;
+.agent.mood-happy .mouth {
+  animation: happyMouth 650ms 180ms cubic-bezier(0.2, 1.4, 0.35, 1) both;
+  background: var(--line);
+  border: 0;
+  border-radius: 2px 2px 999px 999px;
+  height: 19px;
+  top: 62px;
 }
 
-.lab-canvas.reaction-cheat .agent:nth-child(2) .character-shell {
-  animation-delay: 70ms;
+.agent.mood-happy .cheek {
+  animation: cheekPop 700ms 120ms ease-out both;
+  background: rgba(243, 125, 112, 0.46);
 }
 
-.lab-canvas.reaction-cheat .agent:nth-child(3) .character-shell {
-  animation-delay: 130ms;
+.agent.mood-sad {
+  animation: characterDefeat 1050ms cubic-bezier(0.36, 0.07, 0.19, 0.97) both;
 }
 
-.lab-canvas.reaction-cheat .reaction-sparks i {
-  animation: warningBurst 700ms ease-out both;
-  background: var(--coral);
+.agent.mood-sad:nth-child(even) {
+  animation-delay: 90ms;
 }
 
-.lab-canvas.reaction-cheat .agent .mouth {
+.agent.mood-sad:nth-child(3) {
+  animation-delay: 170ms;
+}
+
+.agent.mood-sad .brow.left {
+  transform: rotate(-18deg);
+}
+
+.agent.mood-sad .brow.right {
+  transform: rotate(18deg);
+}
+
+.agent.mood-sad .mouth {
   border-bottom: 0;
   border-radius: 999px 999px 0 0;
   border-top: 3px solid var(--line);
-  top: 72px;
+  top: 73px;
+}
+
+.tear {
+  background: var(--blue);
+  border: 1px solid rgba(57, 53, 48, 0.42);
+  border-radius: 60% 40% 60% 40%;
+  height: 11px;
+  opacity: 0;
+  position: absolute;
+  top: 52px;
+  width: 7px;
+}
+
+.tear.left {
+  left: 37px;
+}
+
+.tear.right {
+  right: 35px;
+}
+
+.agent.mood-sad .tear {
+  animation: tearFall 900ms 230ms ease-in both;
+}
+
+.agent.mood-sad .tear.right {
+  animation-delay: 430ms;
+}
+
+.agent.mood-draw {
+  animation: characterDraw 900ms ease-in-out both;
+}
+
+.agent.mood-draw .mouth {
+  border-radius: 999px;
+  height: 8px;
+  top: 68px;
+}
+
+.lab-canvas.reaction-cooperate .relationship-line {
+  animation: trustSurge 900ms ease-out both;
 }
 
 .lab-canvas.reaction-cheat .relationship-line {
@@ -1052,8 +1115,12 @@ input:focus-visible {
 
 .score-side {
   align-items: center;
-  display: flex;
-  gap: 8px;
+  display: grid;
+  gap: 1px 6px;
+  grid-template-areas:
+    "face label"
+    "face value";
+  grid-template-columns: 27px 1fr;
   justify-content: center;
 }
 
@@ -1061,12 +1128,78 @@ input:focus-visible {
   color: var(--muted);
   font-size: 0.68rem;
   font-weight: 900;
+  grid-area: label;
   text-transform: uppercase;
 }
 
 .score-side strong {
   font-size: 1.75rem;
+  grid-area: value;
   line-height: 1;
+}
+
+.score-face {
+  background: var(--paper);
+  border: 2px solid var(--line);
+  border-radius: 50%;
+  grid-area: face;
+  height: 27px;
+  position: relative;
+  width: 27px;
+}
+
+.score-face::before {
+  background: var(--line);
+  border-radius: 50%;
+  box-shadow: 9px 0 0 var(--line);
+  content: "";
+  height: 3px;
+  left: 6px;
+  position: absolute;
+  top: 7px;
+  width: 3px;
+}
+
+.score-face::after {
+  border-bottom: 2px solid var(--line);
+  border-radius: 0 0 999px 999px;
+  content: "";
+  height: 6px;
+  left: 7px;
+  position: absolute;
+  top: 12px;
+  width: 10px;
+}
+
+.score-side.mood-happy .score-face {
+  animation: scoreFaceWin 850ms cubic-bezier(0.2, 1.45, 0.35, 1) both;
+  background: #dff8f1;
+}
+
+.score-side.mood-happy .score-face::before {
+  background: transparent;
+  border-bottom: 2px solid var(--line);
+  border-radius: 0 0 999px 999px;
+  box-shadow: 9px 0 0 -1px transparent;
+  height: 4px;
+  width: 4px;
+}
+
+.score-side.mood-sad .score-face {
+  animation: scoreFaceLose 820ms ease-out both;
+  background: #ffe4df;
+}
+
+.score-side.mood-sad .score-face::after {
+  border-bottom: 0;
+  border-radius: 999px 999px 0 0;
+  border-top: 2px solid var(--line);
+  top: 16px;
+}
+
+.score-side.mood-draw .score-face {
+  animation: scoreFaceDraw 700ms ease-in-out both;
+  background: #e5efff;
 }
 
 .you-score strong {
@@ -1357,70 +1490,112 @@ input:focus-visible {
   justify-content: center;
 }
 
-.machine {
+.points-stage {
   align-items: center;
-  animation: machinePulse 2.8s ease-in-out infinite;
-  background: #ffffff;
-  border: 4px solid var(--line);
-  border-radius: 22px;
+  background: rgba(255, 255, 255, 0.92);
+  border: 3px solid var(--line);
+  border-radius: 8px;
+  box-shadow: 6px 7px 0 rgba(57, 53, 48, 0.12);
+  display: grid;
+  gap: 10px;
+  grid-template-columns: 88px 28px 88px;
+  justify-content: center;
+  min-height: 118px;
+  padding: 27px 14px 13px;
+  position: relative;
+  width: 258px;
+}
+
+.points-stage.waiting {
+  animation: pointsStageFloat 2.6s ease-in-out infinite;
+}
+
+.points-stage.settled {
+  animation: pointsStageLand 720ms cubic-bezier(0.2, 1.35, 0.35, 1) both;
+}
+
+.points-stage-label {
+  color: var(--muted);
+  font-size: 0.62rem;
+  font-weight: 900;
+  left: 0;
+  position: absolute;
+  right: 0;
+  text-align: center;
+  text-transform: uppercase;
+  top: 8px;
+}
+
+.point-card {
+  align-items: center;
+  background: var(--paper);
+  border: 2px solid var(--line);
+  border-radius: 8px;
   display: flex;
-  height: 118px;
+  flex-direction: column;
+  height: 70px;
   justify-content: center;
   position: relative;
-  width: 156px;
+  width: 88px;
+  z-index: 2;
 }
 
-.machine::before,
-.machine::after {
-  background: #fff4db;
-  border: 3px solid var(--line);
-  border-radius: 50%;
-  content: "";
-  height: 34px;
-  position: absolute;
-  top: -26px;
-  width: 34px;
-}
-
-.machine::before {
-  left: 20px;
-}
-
-.machine::after {
-  right: 20px;
-}
-
-.machine span {
-  color: var(--teal);
-  font-size: 2.1rem;
+.point-card small {
+  color: var(--muted);
+  font-size: 0.58rem;
   font-weight: 900;
+  text-transform: uppercase;
 }
 
-.token {
-  animation: tokenMove 1.8s ease-in-out infinite;
+.point-card strong {
+  font-size: 1.75rem;
+  line-height: 1;
+  margin-top: 4px;
+}
+
+.point-card.player strong {
+  color: var(--teal);
+}
+
+.point-card.characters strong {
+  color: var(--coral);
+}
+
+.point-card.winner {
+  animation: pointCardWin 950ms 140ms cubic-bezier(0.2, 1.45, 0.35, 1) both;
+  background: #dff8f1;
+  border-color: var(--green);
+}
+
+.point-card.loser {
+  animation: pointCardLose 760ms 160ms ease-out both;
+  background: #ffe4df;
+}
+
+.points-versus {
+  color: var(--muted);
+  font-size: 0.75rem;
+  font-weight: 900;
+  text-align: center;
+}
+
+.point-confetti {
   background: var(--gold);
-  border: 3px solid var(--line);
-  border-radius: 50%;
-  height: 34px;
+  height: 8px;
+  opacity: 0;
+  pointer-events: none;
   position: absolute;
-  top: 76px;
-  width: 34px;
+  width: 4px;
 }
 
-.token-a {
-  left: 16%;
+.points-stage.settled .point-confetti {
+  animation: pointConfetti 800ms 180ms ease-out both;
 }
 
-.token-b {
-  animation-delay: 280ms;
-  right: 18%;
-}
-
-.token-c {
-  animation-delay: 520ms;
-  background: var(--teal);
-  left: 48%;
-}
+.point-confetti.one { left: 18px; top: 50px; transform: rotate(-20deg); }
+.point-confetti.two { left: 48px; top: 15px; transform: rotate(35deg); }
+.point-confetti.three { right: 44px; top: 18px; transform: rotate(-32deg); }
+.point-confetti.four { right: 18px; top: 60px; transform: rotate(24deg); }
 
 .scene-mistake {
   align-items: center;
@@ -1952,6 +2127,12 @@ input:focus-visible {
   font-weight: 900;
 }
 
+.result-summary .round-point-gain {
+  color: var(--foreground);
+  font-size: 0.72rem;
+  margin-bottom: 6px;
+}
+
 .result-summary .trust-up {
   color: var(--green);
 }
@@ -2445,24 +2626,55 @@ input:focus-visible {
   100% { transform: translateX(-50%) scale(1); }
 }
 
-@keyframes characterCelebrateLeft {
-  0%, 100% { transform: translate(0, 0) rotate(0); }
-  35% { transform: translate(12px, -24px) rotate(7deg); }
-  62% { transform: translate(6px, -5px) rotate(-3deg); }
+@keyframes characterVictory {
+  0%, 100% { transform: translate(0, 0) rotate(0) scale(1); }
+  24% { transform: translate(8px, -30px) rotate(8deg) scale(1.06, 0.94); }
+  45% { transform: translate(-4px, -7px) rotate(-5deg) scale(0.96, 1.05); }
+  64% { transform: translate(5px, -18px) rotate(4deg) scale(1.03, 0.97); }
+  82% { transform: translate(0, -3px) rotate(-2deg) scale(0.99, 1.01); }
 }
 
-@keyframes characterCelebrateRight {
-  0%, 100% { transform: translate(0, 0) rotate(0); }
-  35% { transform: translate(-12px, -24px) rotate(-7deg); }
-  62% { transform: translate(-6px, -5px) rotate(3deg); }
+@keyframes characterVictoryAlt {
+  0%, 100% { transform: translate(0, 0) rotate(0) scale(1); }
+  24% { transform: translate(-8px, -30px) rotate(-8deg) scale(1.06, 0.94); }
+  45% { transform: translate(4px, -7px) rotate(5deg) scale(0.96, 1.05); }
+  64% { transform: translate(-5px, -18px) rotate(-4deg) scale(1.03, 0.97); }
+  82% { transform: translate(0, -3px) rotate(2deg) scale(0.99, 1.01); }
 }
 
-@keyframes characterRecoil {
+@keyframes characterDefeat {
+  0%, 100% { transform: translate(0, 0) rotate(0) scale(1); }
+  18% { transform: translate(-9px, 2px) rotate(-5deg) scale(1.03, 0.96); }
+  34% { transform: translate(8px, 5px) rotate(4deg) scale(0.98, 1.02); }
+  52% { transform: translate(-5px, 9px) rotate(-3deg) scale(1.01, 0.97); }
+  72% { transform: translate(3px, 12px) rotate(2deg) scale(0.99, 0.96); }
+  88% { transform: translate(0, 8px) rotate(0) scale(1.01, 0.97); }
+}
+
+@keyframes characterDraw {
   0%, 100% { transform: translateX(0) rotate(0); }
-  20% { transform: translateX(-12px) rotate(-5deg); }
-  38% { transform: translateX(10px) rotate(4deg); }
-  56% { transform: translateX(-7px) rotate(-3deg); }
-  74% { transform: translateX(4px) rotate(2deg); }
+  25% { transform: translateX(-7px) rotate(-3deg); }
+  50% { transform: translateX(7px) rotate(3deg); }
+  75% { transform: translateX(-3px) rotate(-1deg); }
+}
+
+@keyframes happyMouth {
+  0% { transform: scale(0.5); }
+  55% { transform: scale(1.22); }
+  100% { transform: scale(1); }
+}
+
+@keyframes cheekPop {
+  0% { opacity: 0.2; transform: scale(0.5); }
+  55% { opacity: 1; transform: scale(1.35); }
+  100% { opacity: 1; transform: scale(1); }
+}
+
+@keyframes tearFall {
+  0% { opacity: 0; transform: translateY(-5px) rotate(45deg) scale(0.4); }
+  25% { opacity: 1; }
+  80% { opacity: 0.9; }
+  100% { opacity: 0; transform: translateY(30px) rotate(45deg) scale(1); }
 }
 
 @keyframes sparkBurst {
@@ -2471,10 +2683,23 @@ input:focus-visible {
   100% { opacity: 0; transform: translateY(-22px) scale(1.3) rotate(80deg); }
 }
 
-@keyframes warningBurst {
-  0% { opacity: 0; transform: scale(0.2); }
-  35% { opacity: 1; transform: scale(1.4); }
-  100% { opacity: 0; transform: translateY(12px) scale(0.7) rotate(45deg); }
+@keyframes scoreFaceWin {
+  0%, 100% { transform: translateY(0) rotate(0) scale(1); }
+  35% { transform: translateY(-7px) rotate(-10deg) scale(1.16); }
+  65% { transform: translateY(-2px) rotate(8deg) scale(0.96); }
+}
+
+@keyframes scoreFaceLose {
+  0%, 100% { transform: translateX(0) rotate(0); }
+  25% { transform: translateX(-4px) rotate(-7deg); }
+  48% { transform: translateX(4px) rotate(6deg); }
+  72% { transform: translateY(3px) rotate(-2deg); }
+}
+
+@keyframes scoreFaceDraw {
+  0%, 100% { transform: rotate(0); }
+  35% { transform: rotate(-8deg); }
+  70% { transform: rotate(8deg); }
 }
 
 @keyframes trustSurge {
@@ -2514,26 +2739,34 @@ input:focus-visible {
   }
 }
 
-@keyframes machinePulse {
-  0%,
-  100% {
-    transform: scale(1);
-  }
-  50% {
-    transform: scale(1.035);
-  }
+@keyframes pointsStageFloat {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-5px); }
 }
 
-@keyframes tokenMove {
-  0%,
-  100% {
-    opacity: 0.58;
-    transform: translateX(0) scale(0.84);
-  }
-  50% {
-    opacity: 1;
-    transform: translateX(48px) scale(1);
-  }
+@keyframes pointsStageLand {
+  0% { opacity: 0.4; transform: translateY(18px) scale(0.9); }
+  65% { opacity: 1; transform: translateY(-4px) scale(1.04); }
+  100% { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+@keyframes pointCardWin {
+  0%, 100% { transform: translateY(0) rotate(0); }
+  35% { box-shadow: 0 0 0 8px rgba(80, 183, 123, 0.18); transform: translateY(-15px) rotate(-4deg); }
+  62% { transform: translateY(-4px) rotate(3deg); }
+}
+
+@keyframes pointCardLose {
+  0%, 100% { transform: translate(0, 0) rotate(0); }
+  28% { transform: translate(-5px, 4px) rotate(-4deg); }
+  52% { transform: translate(5px, 7px) rotate(4deg); }
+  75% { transform: translate(-2px, 5px) rotate(-2deg); }
+}
+
+@keyframes pointConfetti {
+  0% { opacity: 0; transform: translateY(8px) rotate(0) scale(0.4); }
+  32% { opacity: 1; }
+  100% { opacity: 0; transform: translateY(-30px) rotate(140deg) scale(1.2); }
 }
 
 @keyframes crack {
@@ -2947,8 +3180,26 @@ input:focus-visible {
     width: 21px;
   }
 
-  .lab-canvas.reaction-cheat .agent .mouth {
-    top: 55px;
+  .agent.mood-happy .mouth {
+    top: 45px;
+  }
+
+  .agent.mood-sad .mouth {
+    top: 54px;
+  }
+
+  .tear {
+    height: 9px;
+    top: 39px;
+    width: 6px;
+  }
+
+  .tear.left {
+    left: 26px;
+  }
+
+  .tear.right {
+    right: 25px;
   }
 
   .cheek {

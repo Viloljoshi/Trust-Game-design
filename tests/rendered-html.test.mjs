@@ -53,6 +53,7 @@ test("keeps Trust Lab product files free of starter preview imports", async () =
 
   assert.match(page, /Start lesson 1/);
   assert.match(page, /Lesson \{activeIndex \+ 1\} of \{chapters\.length\}/);
+  assert.match(page, /Round \{activeIndex \+ 1\}/);
   assert.match(page, /See your learning progress/);
   assert.match(page, /Research sources/);
   assert.match(page, /Read the science behind this lesson/);
@@ -65,11 +66,21 @@ test("keeps Trust Lab product files free of starter preview imports", async () =
   assert.match(page, /className="move-picker"/);
   assert.match(page, /strategyMoves\.map/);
   assert.doesNotMatch(page, /chapter\.actions\.map/);
-  assert.match(page, /label: "Give"/);
+  assert.match(page, /label: "Share"/);
   assert.match(page, /label: "Check first"/);
   assert.match(page, /label: "Ask uncertainty"/);
   assert.match(page, /label: "Build appeals"/);
   assert.match(page, /Score: You \$\{youScore\}, Characters \$\{characterScore\}/);
+  assert.match(page, /\{youScore\} \{pointWord\(youScore\)\}/);
+  assert.match(page, /This round: \+\$\{roundScore\.you\} vs \+\$\{roundScore\.characters\}/);
+  assert.match(page, /round-point-gain/);
+  assert.match(page, /mood-\$\{playerMood\}/);
+  assert.match(page, /mood-\$\{characterMood\}/);
+  assert.match(page, /className="score-face"/);
+  assert.match(page, /className="tear left"/);
+  assert.match(page, /points-stage/);
+  assert.doesNotMatch(page, /\{tokens\} tokens/);
+  assert.doesNotMatch(page, /className="token token-/);
   assert.match(page, /You win/);
   assert.match(page, /Characters win/);
   assert.match(page, /Trust \{lastAction\.trustShift >= 0 \? "gained" : "lost"\}/);
@@ -90,8 +101,11 @@ test("keeps Trust Lab product files free of starter preview imports", async () =
   assert.match(page, /Sandbox/);
   assert.match(layout, /title:\s*"Trust Lab"/);
   assert.match(css, /scene-ai/);
-  assert.match(css, /characterCelebrateLeft/);
-  assert.match(css, /characterRecoil/);
+  assert.match(css, /characterVictory/);
+  assert.match(css, /characterDefeat/);
+  assert.match(css, /tearFall/);
+  assert.match(css, /scoreFaceWin/);
+  assert.match(css, /pointCardWin/);
   assert.match(css, /trustBreak/);
   assert.match(css, /source-entry/);
   assert.match(css, /source-cta/);
