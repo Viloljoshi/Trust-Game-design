@@ -744,7 +744,7 @@ const initialMetrics: Metrics = {
   resilience: 54,
 };
 
-const AUTO_ADVANCE_MS = 5_000;
+const AUTO_ADVANCE_MS = 2_200;
 
 const clamp = (value: number, min = 0, max = 100) =>
   Math.min(max, Math.max(min, value));
@@ -808,6 +808,8 @@ export default function Home() {
     ai: 62,
   });
   const sfxRef = useRef<HTMLAudioElement | null>(null);
+  const audioContextRef = useRef<AudioContext | null>(null);
+  const masterGainRef = useRef<GainNode | null>(null);
   const autoAdvanceRef = useRef<number | null>(null);
 
   const chapter = chapters[activeIndex];
@@ -865,6 +867,7 @@ export default function Home() {
   useEffect(() => {
     return () => {
       sfxRef.current?.pause();
+      void audioContextRef.current?.close();
       if (autoAdvanceRef.current !== null) {
         window.clearTimeout(autoAdvanceRef.current);
       }
@@ -891,11 +894,68 @@ export default function Home() {
   function playTone(tone: Action["tone"], force = false) {
     if ((!audioUnlocked || !effectsOn) && !force) return;
 
-    sfxRef.current?.pause();
-    const audio = new Audio(`/audio/tone-${tone}.mp3`);
-    audio.volume = 0.82;
-    sfxRef.current = audio;
-    void audio.play().catch(() => undefined);
+    const playFallback = () => {
+      sfxRef.current?.pause();
+      const audio = new Audio(`/audio/tone-${tone}.mp3`);
+      audio.volume = 0.82;
+      sfxRef.current = audio;
+      void audio.play().catch(() => undefined);
+    };
+    const AudioContextClass =
+      window.AudioContext ??
+      (window as typeof window & { webkitAudioContext?: typeof AudioContext }).webkitAudioContext;
+
+    if (!AudioContextClass) {
+      playFallback();
+      return;
+    }
+
+    const context = audioContextRef.current ?? new AudioContextClass();
+    audioContextRef.current = context;
+
+    if (!masterGainRef.current) {
+      const master = context.createGain();
+      master.gain.value = 0.72;
+      master.connect(context.destination);
+      masterGainRef.current = master;
+    }
+
+    masterGainRef.current.gain.cancelScheduledValues(context.currentTime);
+    masterGainRef.current.gain.setTargetAtTime(0.72, context.currentTime, 0.015);
+
+    const noteSets: Record<Action["tone"], Array<[number, number, number]>> = {
+      bright: [[523, 0, 0.16], [659, 0.11, 0.18], [784, 0.24, 0.24]],
+      soft: [[392, 0, 0.2], [523, 0.16, 0.26]],
+      low: [[247, 0, 0.22], [196, 0.17, 0.3]],
+      alert: [[370, 0, 0.13], [277, 0.12, 0.16], [220, 0.26, 0.24]],
+    };
+
+    const sound = () => {
+      const start = context.currentTime + 0.01;
+
+      noteSets[tone].forEach(([frequency, offset, duration]) => {
+        const oscillator = context.createOscillator();
+        const gain = context.createGain();
+        const noteStart = start + offset;
+        const noteEnd = noteStart + duration;
+
+        oscillator.type = tone === "alert" ? "square" : tone === "low" ? "triangle" : "sine";
+        oscillator.frequency.setValueAtTime(frequency, noteStart);
+        gain.gain.setValueAtTime(0.0001, noteStart);
+        gain.gain.exponentialRampToValueAtTime(tone === "alert" ? 0.11 : 0.16, noteStart + 0.025);
+        gain.gain.exponentialRampToValueAtTime(0.0001, noteEnd);
+        oscillator.connect(gain);
+        gain.connect(masterGainRef.current!);
+        oscillator.start(noteStart);
+        oscillator.stop(noteEnd + 0.02);
+      });
+    };
+
+    if (context.state === "suspended") {
+      void context.resume().then(sound).catch(playFallback);
+    } else {
+      sound();
+    }
   }
 
   function activateAudio() {
@@ -911,6 +971,9 @@ export default function Home() {
     }
 
     sfxRef.current?.pause();
+    if (masterGainRef.current && audioContextRef.current) {
+      masterGainRef.current.gain.setTargetAtTime(0, audioContextRef.current.currentTime, 0.015);
+    }
     setEffectsOn(false);
   }
 

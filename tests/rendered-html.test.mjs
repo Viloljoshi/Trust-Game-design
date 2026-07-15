@@ -95,7 +95,9 @@ test("keeps Trust Lab product files free of starter preview imports", async () =
   assert.match(page, /role: "checks the source"/);
   assert.match(page, /Check what happened before blaming someone/);
   assert.match(page, /function scoreMove\(action: Action\)/);
-  assert.match(page, /const AUTO_ADVANCE_MS = 5_000/);
+  assert.match(page, /const AUTO_ADVANCE_MS = 2_200/);
+  assert.match(page, /audioContextRef/);
+  assert.match(page, /context\.createOscillator\(\)/);
   assert.match(page, /window\.setTimeout\([\s\S]*chooseChapter\(activeIndex \+ 1\)/);
   assert.match(page, /Nine rounds complete/);
   assert.match(page, /Play all 9 again/);
