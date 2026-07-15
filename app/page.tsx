@@ -25,6 +25,15 @@ type Action = {
   deltas: Partial<Metrics>;
 };
 
+type ResearchSource = {
+  title: string;
+  authors: string;
+  publication: string;
+  year: string;
+  url: string;
+  takeaway: string;
+};
+
 type Chapter = {
   id: string;
   number: string;
@@ -34,6 +43,7 @@ type Chapter = {
   prompt: string;
   characters: string[];
   research: string;
+  sources: ResearchSource[];
   visual: "exchange" | "mistake" | "group" | "reputation" | "feed" | "ai" | "rules" | "sandbox";
   actions: Action[];
 };
@@ -144,6 +154,16 @@ const chapters: Chapter[] = [
     prompt: "Give Scout a token and it becomes two.",
     characters: ["Scout", "Velvet"],
     research: "Prisoner's dilemma framing, betrayal aversion and baseline prediction.",
+    sources: [
+      {
+        title: "Trust, Reciprocity, and Social History",
+        authors: "Joyce Berg, John Dickhaut and Kevin McCabe",
+        publication: "Games and Economic Behavior",
+        year: "1995",
+        url: "https://www.sciencedirect.com/science/article/pii/S0899825685710275",
+        takeaway: "The classic trust game shows how a small first risk can reveal trust and reciprocity.",
+      },
+    ],
     visual: "exchange",
     actions: [
       {
@@ -193,6 +213,16 @@ const chapters: Chapter[] = [
     prompt: "Velvet helped twice. Now a bigger reward appears.",
     characters: ["Scout", "Velvet", "Drift"],
     research: "Axelrod and Hamilton, direct reciprocity, time horizons and tournament strategies.",
+    sources: [
+      {
+        title: "The Evolution of Cooperation",
+        authors: "Robert Axelrod and William D. Hamilton",
+        publication: "Science",
+        year: "1981",
+        url: "https://www.science.org/doi/10.1126/science.7466396",
+        takeaway: "Repeated encounters can make cooperation a strong strategy, even among self-interested players.",
+      },
+    ],
     visual: "exchange",
     actions: [
       {
@@ -242,6 +272,16 @@ const chapters: Chapter[] = [
     prompt: "Patch made one mistake after three good rounds.",
     characters: ["Patch", "Wall", "Scout"],
     research: "Noise, communication, apology, compensation and trust repair.",
+    sources: [
+      {
+        title: "Promises and Lies: Restoring Violated Trust",
+        authors: "Maurice E. Schweitzer, John C. Hershey and Eric T. Bradlow",
+        publication: "Organizational Behavior and Human Decision Processes",
+        year: "2006",
+        url: "https://www.sciencedirect.com/science/article/abs/pii/S0749597806000665",
+        takeaway: "Reliable actions can repair trust, but deliberate deception leaves deeper damage than a mistake.",
+      },
+    ],
     visual: "mistake",
     actions: [
       {
@@ -291,6 +331,16 @@ const chapters: Chapter[] = [
     prompt: "Everyone can add tokens to one shared pot.",
     characters: ["Echo", "Drift", "Scout"],
     research: "Conditional cooperation, free riding, costly punishment and fairness context.",
+    sources: [
+      {
+        title: "Altruistic Punishment in Humans",
+        authors: "Ernst Fehr and Simon Gachter",
+        publication: "Nature",
+        year: "2002",
+        url: "https://www.nature.com/articles/415137a",
+        takeaway: "Groups cooperate more when free riding has a credible and fair consequence.",
+      },
+    ],
     visual: "group",
     actions: [
       {
@@ -340,6 +390,16 @@ const chapters: Chapter[] = [
     prompt: "Two providers have five stars. One may be faking it.",
     characters: ["Ledger", "Mask", "Velvet"],
     research: "Indirect reciprocity, fake reviews, observation effects and platform incentives.",
+    sources: [
+      {
+        title: "The Digitization of Word of Mouth",
+        authors: "Chrysanthos Dellarocas",
+        publication: "Management Science",
+        year: "2003",
+        url: "https://pubsonline.informs.org/doi/10.1287/mnsc.49.10.1407.17308",
+        takeaway: "Online ratings can build large-scale trust, but their design must resist manipulation.",
+      },
+    ],
     visual: "reputation",
     actions: [
       {
@@ -389,6 +449,16 @@ const chapters: Chapter[] = [
     prompt: "A shocking claim is spreading fast.",
     characters: ["Lens", "Spark", "Echo"],
     research: "False-news diffusion, outrage, homophily, source tracing and platform objectives.",
+    sources: [
+      {
+        title: "The Spread of True and False News Online",
+        authors: "Soroush Vosoughi, Deb Roy and Sinan Aral",
+        publication: "Science",
+        year: "2018",
+        url: "https://www.science.org/doi/10.1126/science.aap9559",
+        takeaway: "False stories can travel farther and faster, making a pause to check the source valuable.",
+      },
+    ],
     visual: "feed",
     actions: [
       {
@@ -438,6 +508,16 @@ const chapters: Chapter[] = [
     prompt: "One AI sounds certain. The other admits uncertainty.",
     characters: ["Oracle", "Compass", "Scout"],
     research: "Automation bias, algorithm aversion, task competence and confidence calibration.",
+    sources: [
+      {
+        title: "Trust in Automation: Designing for Appropriate Reliance",
+        authors: "John D. Lee and Katrina A. See",
+        publication: "Human Factors",
+        year: "2004",
+        url: "https://journals.sagepub.com/doi/10.1518/hfes.46.1.50_30392",
+        takeaway: "Good human-AI decisions depend on matching trust to the system's real ability and context.",
+      },
+    ],
     visual: "ai",
     actions: [
       {
@@ -487,6 +567,16 @@ const chapters: Chapter[] = [
     prompt: "The system is being gamed. You can change one rule.",
     characters: ["Architect", "Ledger", "Compass"],
     research: "Institutional design, monitoring, appeals, privacy, sanctions and exit rights.",
+    sources: [
+      {
+        title: "Covenants with and without a Sword: Self-Governance Is Possible",
+        authors: "Elinor Ostrom, James Walker and Roy Gardner",
+        publication: "American Political Science Review",
+        year: "1992",
+        url: "https://www.cambridge.org/core/journals/american-political-science-review/article/abs/covenants-with-and-without-a-sword-selfgovernance-is-possible/2191864CCB589D4B3528090CB596C254",
+        takeaway: "Communication, shared commitments and fair enforcement can support cooperation without pure top-down control.",
+      },
+    ],
     visual: "rules",
     actions: [
       {
@@ -536,6 +626,16 @@ const chapters: Chapter[] = [
     prompt: "Change the settings, then run the world again.",
     characters: ["Scout", "Echo", "Compass"],
     research: "Seeded counterfactuals, sensitivity testing and simulation literacy.",
+    sources: [
+      {
+        title: "Five Rules for the Evolution of Cooperation",
+        authors: "Martin A. Nowak",
+        publication: "Science",
+        year: "2006",
+        url: "https://www.science.org/doi/10.1126/science.1133755",
+        takeaway: "Different structures can support cooperation, which is why changing the world changes the result.",
+      },
+    ],
     visual: "sandbox",
     actions: [
       {
@@ -1214,20 +1314,33 @@ export default function Home() {
 
       <details className="learning-drawer">
         <summary>
-          <span>Why this lesson matters</span>
-          <small>Research and the key trade-off</small>
+          <span>Research sources</span>
+          <small>Read the science behind this lesson</small>
         </summary>
-        <section className="research-strip">
-          <div>
+        <section className="research-strip" aria-label={`Research sources for ${chapter.title}`}>
+          <div className="research-context">
             <p className="eyebrow">Research behind this scene</p>
             <p>{chapter.research}</p>
-          </div>
-          <div>
-            <p className="eyebrow">Keep in mind</p>
-            <p>
+            <p className="research-note">
               You are balancing prevented exploitation against missed cooperation. The game reports
               trade-offs, not personality labels.
             </p>
+          </div>
+          <div className="source-list">
+            {chapter.sources.map((source) => (
+              <article className="source-entry" key={source.url}>
+                <div className="source-meta">
+                  <span>{source.publication}</span>
+                  <span>{source.year}</span>
+                </div>
+                <h3>{source.title}</h3>
+                <p className="source-authors">{source.authors}</p>
+                <p className="source-takeaway">{source.takeaway}</p>
+                <a className="source-cta" href={source.url} target="_blank" rel="noreferrer">
+                  Read the paper <span aria-hidden="true">↗</span>
+                </a>
+              </article>
+            ))}
           </div>
         </section>
       </details>

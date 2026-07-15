@@ -2128,18 +2128,113 @@ input:focus-visible {
 }
 
 .research-strip {
-  background: rgba(255, 255, 255, 0.76);
+  background:
+    linear-gradient(90deg, rgba(46, 184, 170, 0.08), transparent 42%),
+    rgba(255, 255, 255, 0.76);
   display: grid;
-  gap: 18px;
-  grid-template-columns: 1fr 1fr;
+  gap: 24px;
+  grid-template-columns: minmax(0, 0.72fr) minmax(0, 1.28fr);
   line-height: 1.48;
   margin: 0 auto;
   max-width: 1440px;
-  padding: 18px;
+  padding: 22px;
 }
 
 .research-strip p:last-child {
   margin-bottom: 0;
+}
+
+.research-context {
+  align-self: center;
+}
+
+.research-context > p:not(.eyebrow) {
+  font-size: 0.9rem;
+}
+
+.research-note {
+  border-left: 4px solid var(--gold);
+  color: var(--muted);
+  margin-top: 15px;
+  padding-left: 12px;
+}
+
+.source-list {
+  display: grid;
+  gap: 12px;
+}
+
+.source-entry {
+  border-left: 5px solid var(--teal);
+  display: grid;
+  gap: 8px;
+  min-width: 0;
+  padding: 3px 0 3px 17px;
+}
+
+.source-entry h3 {
+  font-size: clamp(1.05rem, 2vw, 1.32rem);
+  line-height: 1.18;
+  margin: 0;
+}
+
+.source-meta {
+  align-items: center;
+  color: var(--muted);
+  display: flex;
+  flex-wrap: wrap;
+  font-size: 0.7rem;
+  font-weight: 900;
+  gap: 8px;
+  text-transform: uppercase;
+}
+
+.source-meta span:last-child {
+  background: var(--paper);
+  border: 1px solid rgba(57, 53, 48, 0.34);
+  border-radius: 999px;
+  padding: 2px 7px;
+}
+
+.source-authors {
+  color: var(--muted);
+  font-size: 0.78rem;
+  font-weight: 800;
+  margin: 0;
+}
+
+.source-takeaway {
+  font-size: 0.86rem;
+  margin: 2px 0 4px;
+}
+
+.source-cta {
+  align-items: center;
+  background: var(--foreground);
+  border: 2px solid var(--foreground);
+  border-radius: 6px;
+  color: white;
+  display: inline-flex;
+  font-size: 0.8rem;
+  font-weight: 900;
+  gap: 9px;
+  justify-content: space-between;
+  margin-top: 3px;
+  max-width: 190px;
+  padding: 10px 12px;
+  text-decoration: none;
+  transition: background 160ms ease, color 160ms ease, transform 160ms ease;
+}
+
+.source-cta:hover,
+.source-cta:focus-visible {
+  background: var(--teal);
+  color: var(--foreground);
+  transform: translateY(-2px);
+}
+
+.source-cta span {
+  font-size: 1rem;
 }
 
 .final-page {

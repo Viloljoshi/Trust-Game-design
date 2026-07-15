@@ -54,6 +54,13 @@ test("keeps Trust Lab product files free of starter preview imports", async () =
   assert.match(page, /Start lesson 1/);
   assert.match(page, /Lesson \{activeIndex \+ 1\} of \{chapters\.length\}/);
   assert.match(page, /See your learning progress/);
+  assert.match(page, /Research sources/);
+  assert.match(page, /Read the science behind this lesson/);
+  assert.match(page, /Read the paper/);
+  assert.match(page, /Trust, Reciprocity, and Social History/);
+  assert.match(page, /The Spread of True and False News Online/);
+  assert.match(page, /Trust in Automation: Designing for Appropriate Reliance/);
+  assert.match(page, /target="_blank" rel="noreferrer"/);
   assert.match(page, /Next lesson/);
   assert.match(page, /className="move-picker"/);
   assert.match(page, /strategyMoves\.map/);
@@ -86,6 +93,8 @@ test("keeps Trust Lab product files free of starter preview imports", async () =
   assert.match(css, /characterCelebrateLeft/);
   assert.match(css, /characterRecoil/);
   assert.match(css, /trustBreak/);
+  assert.match(css, /source-entry/);
+  assert.match(css, /source-cta/);
   assert.match(css, /prefers-reduced-motion:\s*reduce/);
   assert.doesNotMatch(page + layout + css + packageJson, /_sites-preview|SkeletonPreview|react-loading-skeleton/);
 });
