@@ -76,6 +76,12 @@ test("keeps Trust Lab product files free of starter preview imports", async () =
   assert.match(page, /round-point-gain/);
   assert.match(page, /mood-\$\{playerMood\}/);
   assert.match(page, /mood-\$\{characterMood\}/);
+  assert.match(page, /const displayedPlayerVerdict = roundScore\?\.verdict \?\? lastVerdict/);
+  assert.match(page, /setLastVerdict\(score\.verdict\)/);
+  assert.match(page, /Your emotion: \$\{playerEmotion\}/);
+  assert.match(page, /className="player-face"/);
+  assert.match(page, /"Happy"/);
+  assert.match(page, /"Sad"/);
   assert.match(page, /className="score-face"/);
   assert.match(page, /className="tear left"/);
   assert.match(page, /points-stage/);

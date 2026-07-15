@@ -706,7 +706,7 @@ input:focus-visible {
     #fffef9;
   background-size: 34px 34px;
   grid-area: canvas;
-  min-height: 600px;
+  min-height: 660px;
   overflow: hidden;
   padding: 18px;
   position: relative;
@@ -728,7 +728,7 @@ input:focus-visible {
   left: 8%;
   position: absolute;
   right: 8%;
-  top: 170px;
+  top: 210px;
   z-index: 1;
 }
 
@@ -769,8 +769,8 @@ input:focus-visible {
   display: flex;
   gap: clamp(18px, 5vw, 70px);
   justify-content: center;
-  min-height: 270px;
-  padding-top: 168px;
+  min-height: 330px;
+  padding-top: 215px;
   position: relative;
   z-index: 3;
 }
@@ -939,30 +939,6 @@ input:focus-visible {
 
 .lab-canvas.reaction-cheat .scene {
   animation: sceneJolt 620ms ease-out both;
-}
-
-.move-flash {
-  color: var(--teal);
-  font-size: 1.4rem;
-  font-weight: 900;
-  left: 50%;
-  pointer-events: none;
-  position: absolute;
-  text-align: center;
-  text-transform: uppercase;
-  top: 137px;
-  transform: translateX(-50%);
-  white-space: nowrap;
-  z-index: 7;
-}
-
-.move-flash.cooperate {
-  animation: moveFlash 900ms ease-out both;
-}
-
-.move-flash.cheat {
-  animation: moveFlash 900ms ease-out both;
-  color: var(--red);
 }
 
 .body {
@@ -1177,12 +1153,8 @@ input:focus-visible {
 }
 
 .score-side.mood-happy .score-face::before {
-  background: transparent;
-  border-bottom: 2px solid var(--line);
-  border-radius: 0 0 999px 999px;
-  box-shadow: 9px 0 0 -1px transparent;
-  height: 4px;
-  width: 4px;
+  background: var(--line);
+  box-shadow: 9px 0 0 var(--line);
 }
 
 .score-side.mood-sad .score-face {
@@ -1200,6 +1172,182 @@ input:focus-visible {
 .score-side.mood-draw .score-face {
   animation: scoreFaceDraw 700ms ease-in-out both;
   background: #e5efff;
+}
+
+.player-emotion {
+  align-items: center;
+  background: #ffffff;
+  border: 3px solid var(--line);
+  border-radius: 8px;
+  box-shadow: 4px 5px 0 rgba(57, 53, 48, 0.11);
+  display: grid;
+  gap: 10px;
+  grid-template-columns: 48px minmax(0, 1fr);
+  left: 50%;
+  min-height: 62px;
+  padding: 6px 12px;
+  position: absolute;
+  top: 132px;
+  transform: translateX(-50%);
+  width: 230px;
+  z-index: 8;
+}
+
+.player-emotion small,
+.player-emotion strong,
+.player-emotion span {
+  display: block;
+  letter-spacing: 0;
+  line-height: 1.05;
+}
+
+.player-emotion small {
+  color: var(--muted);
+  font-size: 0.58rem;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+
+.player-emotion strong {
+  font-size: 1rem;
+  margin-top: 2px;
+}
+
+.player-emotion > div:last-child > span {
+  color: var(--muted);
+  font-size: 0.65rem;
+  font-weight: 800;
+  margin-top: 3px;
+}
+
+.player-face {
+  background: var(--paper);
+  border: 3px solid var(--line);
+  border-radius: 50%;
+  height: 48px;
+  position: relative;
+  width: 48px;
+}
+
+.player-eye {
+  background: var(--line);
+  border-radius: 50%;
+  height: 5px;
+  position: absolute;
+  top: 17px;
+  width: 5px;
+}
+
+.player-eye.left { left: 11px; }
+.player-eye.right { right: 11px; }
+
+.player-brow {
+  border-top: 2px solid rgba(57, 53, 48, 0.72);
+  position: absolute;
+  top: 10px;
+  width: 10px;
+}
+
+.player-brow.left { left: 9px; transform: rotate(5deg); }
+.player-brow.right { right: 9px; transform: rotate(-5deg); }
+
+.player-mouth {
+  border-bottom: 3px solid var(--line);
+  border-radius: 0 0 999px 999px;
+  height: 9px;
+  left: 50%;
+  position: absolute;
+  top: 25px;
+  transform: translateX(-50%);
+  width: 19px;
+}
+
+.player-tear {
+  background: var(--blue);
+  border: 1px solid rgba(57, 53, 48, 0.4);
+  border-radius: 60% 40% 60% 40%;
+  height: 8px;
+  opacity: 0;
+  position: absolute;
+  top: 23px;
+  width: 5px;
+}
+
+.player-tear.left { left: 10px; }
+.player-tear.right { right: 10px; }
+
+.player-emotion.mood-happy {
+  animation: playerEmotionHappy 900ms cubic-bezier(0.2, 1.45, 0.35, 1) both;
+  background: #dff8f1;
+}
+
+.player-emotion.mood-happy .player-face {
+  background: #bcefe3;
+}
+
+.player-emotion.mood-happy .player-eye {
+  background: transparent;
+  border-bottom: 3px solid var(--line);
+  border-radius: 0 0 999px 999px;
+  height: 7px;
+  top: 15px;
+  width: 10px;
+}
+
+.player-emotion.mood-happy .player-eye.left { left: 8px; }
+.player-emotion.mood-happy .player-eye.right { right: 8px; }
+
+.player-emotion.mood-happy .player-mouth {
+  background: var(--line);
+  border: 0;
+  border-radius: 2px 2px 999px 999px;
+  height: 13px;
+  top: 27px;
+  width: 20px;
+}
+
+.player-emotion.mood-sad {
+  animation: playerEmotionSad 900ms cubic-bezier(0.36, 0.07, 0.19, 0.97) both;
+  background: #ffe4df;
+}
+
+.player-emotion.mood-sad .player-face {
+  background: #ffcfc6;
+}
+
+.player-emotion.mood-sad .player-brow.left { transform: rotate(-20deg); }
+.player-emotion.mood-sad .player-brow.right { transform: rotate(20deg); }
+
+.player-emotion.mood-sad .player-mouth {
+  border-bottom: 0;
+  border-radius: 999px 999px 0 0;
+  border-top: 3px solid var(--line);
+  top: 32px;
+}
+
+.player-emotion.mood-sad .player-tear {
+  animation: playerTear 1s 260ms ease-in both;
+}
+
+.player-emotion.mood-sad .player-tear.right {
+  animation-delay: 430ms;
+}
+
+.player-emotion.mood-draw {
+  animation: playerEmotionDraw 780ms ease-in-out both;
+  background: #e5efff;
+}
+
+.player-emotion.mood-draw .player-face {
+  background: #cfddfa;
+}
+
+.player-emotion.mood-draw .player-mouth {
+  border-bottom: 3px solid var(--line);
+  border-radius: 0;
+  height: 0;
+  top: 31px;
+  width: 17px;
 }
 
 .you-score strong {
@@ -2702,6 +2850,34 @@ input:focus-visible {
   70% { transform: rotate(8deg); }
 }
 
+@keyframes playerEmotionHappy {
+  0% { opacity: 0.4; transform: translateX(-50%) translateY(10px) rotate(-4deg) scale(0.82); }
+  38% { opacity: 1; transform: translateX(-50%) translateY(-8px) rotate(4deg) scale(1.08); }
+  68% { transform: translateX(-50%) translateY(2px) rotate(-2deg) scale(0.98); }
+  100% { opacity: 1; transform: translateX(-50%) translateY(0) rotate(0) scale(1); }
+}
+
+@keyframes playerEmotionSad {
+  0% { transform: translateX(-50%) translateY(0) rotate(0); }
+  22% { transform: translateX(calc(-50% - 7px)) translateY(2px) rotate(-3deg); }
+  43% { transform: translateX(calc(-50% + 6px)) translateY(4px) rotate(3deg); }
+  65% { transform: translateX(calc(-50% - 3px)) translateY(7px) rotate(-1deg); }
+  100% { transform: translateX(-50%) translateY(5px) rotate(0); }
+}
+
+@keyframes playerEmotionDraw {
+  0%, 100% { transform: translateX(-50%) rotate(0); }
+  30% { transform: translateX(calc(-50% - 5px)) rotate(-2deg); }
+  65% { transform: translateX(calc(-50% + 5px)) rotate(2deg); }
+}
+
+@keyframes playerTear {
+  0% { opacity: 0; transform: translateY(-3px) rotate(45deg) scale(0.5); }
+  28% { opacity: 1; }
+  80% { opacity: 0.9; }
+  100% { opacity: 0; transform: translateY(17px) rotate(45deg) scale(1); }
+}
+
 @keyframes trustSurge {
   0% { box-shadow: 0 0 0 rgba(35, 184, 169, 0); }
   45% { box-shadow: 0 0 0 10px rgba(35, 184, 169, 0.2); }
@@ -2720,13 +2896,6 @@ input:focus-visible {
   30% { transform: translateX(12px); }
   55% { transform: translateX(-9px); }
   75% { transform: translateX(4px); }
-}
-
-@keyframes moveFlash {
-  0% { opacity: 0; transform: translate(-50%, 12px) scale(0.72); }
-  24% { opacity: 1; transform: translate(-50%, 0) scale(1.08); }
-  72% { opacity: 1; transform: translate(-50%, 0) scale(1); }
-  100% { opacity: 0; transform: translate(-50%, -8px) scale(0.96); }
 }
 
 @keyframes breathe {
@@ -3074,14 +3243,15 @@ input:focus-visible {
   }
 
   .lab-canvas {
-    min-height: 560px;
+    min-height: 650px;
     padding: 14px;
   }
 
   .agent-row {
     gap: 10px;
     justify-content: space-around;
-    padding-top: 160px;
+    min-height: 320px;
+    padding-top: 210px;
   }
 
   .scoreboard {
@@ -3109,13 +3279,21 @@ input:focus-visible {
     padding: 2px 5px;
   }
 
-  .move-flash {
-    font-size: 1rem;
-    top: 139px;
+  .player-emotion {
+    grid-template-columns: 44px minmax(0, 1fr);
+    min-height: 58px;
+    padding: 5px 10px;
+    top: 130px;
+    width: 230px;
+  }
+
+  .player-face {
+    height: 44px;
+    width: 44px;
   }
 
   .relationship-wrap {
-    top: 162px;
+    top: 205px;
   }
 
   .agent {

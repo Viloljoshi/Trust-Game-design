@@ -791,6 +791,7 @@ export default function Home() {
   const [youScore, setYouScore] = useState(0);
   const [characterScore, setCharacterScore] = useState(0);
   const [roundScore, setRoundScore] = useState<RoundScore | null>(null);
+  const [lastVerdict, setLastVerdict] = useState<RoundScore["verdict"] | null>(null);
   const [lastStrategy, setLastStrategy] = useState<Strategy | null>(null);
   const [strategyHistory, setStrategyHistory] = useState<Strategy[]>([]);
   const [showFinalReport, setShowFinalReport] = useState(false);
@@ -819,12 +820,12 @@ export default function Home() {
     if (!action) throw new Error(`Missing ${strategy} action for ${chapter.id}`);
     return { strategy, action, copy: strategyMoveCopy[chapter.id][strategy] };
   });
-  const lastMoveCopy = lastStrategy ? strategyMoveCopy[chapter.id][lastStrategy] : null;
-  const playerMood: OutcomeMood = !roundScore
+  const displayedPlayerVerdict = roundScore?.verdict ?? lastVerdict;
+  const playerMood: OutcomeMood = !displayedPlayerVerdict
     ? "neutral"
-    : roundScore.verdict === "win"
+    : displayedPlayerVerdict === "win"
       ? "happy"
-      : roundScore.verdict === "loss"
+      : displayedPlayerVerdict === "loss"
         ? "sad"
         : "draw";
   const characterMood: OutcomeMood = !roundScore
@@ -834,6 +835,15 @@ export default function Home() {
       : roundScore.verdict === "win"
         ? "sad"
         : "draw";
+  const playerEmotion =
+    playerMood === "happy" ? "Happy" : playerMood === "sad" ? "Sad" : playerMood === "draw" ? "Draw" : "Ready";
+  const playerEmotionDetail = !displayedPlayerVerdict
+    ? "Choose a move"
+    : displayedPlayerVerdict === "win"
+      ? "You won"
+      : displayedPlayerVerdict === "loss"
+        ? "You lost"
+        : "Even score";
 
   const sandboxScores = useMemo(() => {
     const cooperation = clamp(
@@ -925,6 +935,7 @@ export default function Home() {
     setStrategyHistory((value) => [...value, strategy]);
     setHasChosen(true);
     setRoundScore(score);
+    setLastVerdict(score.verdict);
     setYouScore((value) => value + score.you);
     setCharacterScore((value) => value + score.characters);
     setTrust((value) => clamp(value + action.trustShift));
@@ -953,6 +964,7 @@ export default function Home() {
     setYouScore(0);
     setCharacterScore(0);
     setRoundScore(null);
+    setLastVerdict(null);
     setLastStrategy(null);
     setStrategyHistory([]);
     setShowFinalReport(false);
@@ -1222,12 +1234,6 @@ export default function Home() {
             <span>{chapter.scale}</span>
           </div>
 
-          {hasChosen && lastMoveCopy && (
-            <div className={`move-flash ${lastStrategy}`} key={pulse} aria-hidden="true">
-              {lastMoveCopy.label}
-            </div>
-          )}
-
           <div
             className="scoreboard"
             aria-label={`Score: You ${youScore}, Characters ${characterScore}`}
@@ -1258,6 +1264,27 @@ export default function Home() {
               <i className="score-face" aria-hidden="true" />
               <span>Characters</span>
               <strong>{characterScore}</strong>
+            </div>
+          </div>
+
+          <div
+            className={`player-emotion mood-${playerMood}`}
+            aria-label={`Your emotion: ${playerEmotion}. ${playerEmotionDetail}.`}
+            aria-live="polite"
+          >
+            <div className="player-face" aria-hidden="true">
+              <span className="player-brow left" />
+              <span className="player-brow right" />
+              <span className="player-eye left" />
+              <span className="player-eye right" />
+              <span className="player-tear left" />
+              <span className="player-tear right" />
+              <span className="player-mouth" />
+            </div>
+            <div>
+              <small>{roundScore ? "Your result" : lastVerdict ? "Last result" : "You"}</small>
+              <strong>{playerEmotion}</strong>
+              <span>{playerEmotionDetail}</span>
             </div>
           </div>
 
